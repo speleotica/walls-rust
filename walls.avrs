@@ -1,0 +1,14 @@
+{
+  "name": "WallsSrvFile",
+  "type": "array",
+  "items": [
+    { "name": "UnitsDirective", "type": "record", "fields": [] },
+    { "name": "SegmentDirective", "type": "record", "fields": [] },
+    { "name": "PrefixDirective", "type": "record", "fields": [] },
+    { "name": "NoteDirective", "type": "record", "fields": [] },
+    { "name": "FlagDirective", "type": "record", "fields": [] },
+    { "name": "SymbolDirective", "type": "record", "fields": [] },
+    { "name": "DateDirective", "type": "record", "fields": [] },
+    { "name": "Shot", "type": "record", "fields": [] }
+  ]
+}

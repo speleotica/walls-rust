@@ -1,0 +1,22 @@
+{
+  "name": "walls-rust",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.30.3",
+  "dependencies": {
+    "@ovotech/avro-ts-cli": "^3.6.0",
+    "avsc": "^5.7.9"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "json-schema-to-typescript": "^15.0.4",
+    "typescript": "^7.0.2"
+  }
+}
