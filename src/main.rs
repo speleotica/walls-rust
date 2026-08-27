@@ -1,5 +1,5 @@
+use crate::srv::types::MaybeValidWallsSrvFile;
 use schemars::schema_for;
-use crate::srv::types::{MaybeValidWallsSrvFile};
 
 pub mod srv;
 pub mod types;
