@@ -418,7 +418,7 @@ impl<'i> ParseState<'i> {
 
     /// Returns a match if `regex` (which must start with ^) matches at
     /// the current parse index.
-    pub fn peek<'h>(&'h self, regex: &Regex) -> Option<ParseMatch<'h>> {
+    pub fn peek(&self, regex: &Regex) -> Option<ParseMatch<'i>> {
         check_parse_regex(regex);
         match regex.find(&self.input[self.index..]) {
             Some(m) => Some(ParseMatch::new(m, self.index)),
@@ -429,7 +429,7 @@ impl<'i> ParseState<'i> {
     /// Returns a match if `regex` (which must start with ^) matches at
     /// the current parse index, and advances the parse index to the end
     /// of the match.
-    pub fn find<'h>(&'h mut self, regex: &Regex) -> Option<ParseMatch<'h>> {
+    pub fn find(&mut self, regex: &Regex) -> Option<ParseMatch<'i>> {
         check_parse_regex(regex);
         match regex.find(&self.input[self.index..]) {
             Some(m) => {
@@ -444,7 +444,7 @@ impl<'i> ParseState<'i> {
     /// Returns a capture if `regex` (which must start with ^) matches at
     /// the current parse index, and advances the parse index to the end
     /// of the match.
-    pub fn captures<'h>(&'h mut self, regex: &Regex) -> Option<ParseCaptures<'h>> {
+    pub fn captures(&mut self, regex: &Regex) -> Option<ParseCaptures<'i>> {
         check_parse_regex(regex);
         match regex.captures(&self.input[self.index..]) {
             Some(c) => {
