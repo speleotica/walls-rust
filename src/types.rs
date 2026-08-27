@@ -393,7 +393,7 @@ impl<'h> ParseCaptures<'h> {
 }
 
 pub struct ParseState<'i> {
-    input: &'i String,
+    input: &'i str,
     index: usize,
 }
 
@@ -468,7 +468,7 @@ mod tests {
     #[test]
     fn test_parse_state() {
         let mut p = ParseState {
-            input: &String::from("foobar"),
+            input: &"foobar",
             index: 0,
         };
 
