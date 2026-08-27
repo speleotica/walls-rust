@@ -392,8 +392,8 @@ impl<'h> ParseCaptures<'h> {
     }
 }
 
-pub struct ParseState {
-    input: String,
+pub struct ParseState<'i> {
+    input: &'i String,
     index: usize,
 }
 
@@ -404,7 +404,7 @@ fn check_parse_regex(regex: &Regex) {
     }
 }
 
-impl ParseState {
+impl<'i> ParseState<'i> {
     /// Returns the current parse index.
     pub fn index(&self) -> usize {
         self.index
@@ -468,7 +468,7 @@ mod tests {
     #[test]
     fn test_parse_state() {
         let mut p = ParseState {
-            input: String::from("foobar"),
+            input: &String::from("foobar"),
             index: 0,
         };
 
