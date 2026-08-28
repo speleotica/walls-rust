@@ -1,20 +1,95 @@
+use std::{
+    ops::{Add, AddAssign},
+    range::Range,
+};
+
 use regex::{Captures, Match, Regex};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, Eq, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct SourcePos {
-    line: u32,
-    column: u32,
-    index: u32,
+    line: usize,
+    column: usize,
+    index: usize,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+impl Add<&str> for SourcePos {
+    type Output = SourcePos;
+
+    fn add(self, rhs: &str) -> SourcePos {
+        let mut end = self;
+        let char_count = rhs.chars().count();
+        end.index += char_count;
+        end.line += rhs.bytes().filter(|&b| b == b'\n').count();
+        if end.line == self.line {
+            end.column = self.column + char_count;
+        } else {
+            match rhs.rfind('\n') {
+                Some(index) => end.column = rhs[index..].chars().count(),
+                None => end.column = 1,
+            }
+        }
+        end
+    }
+}
+
+impl AddAssign<&str> for SourcePos {
+    fn add_assign(&mut self, rhs: &str) {
+        let char_count = rhs.chars().count();
+        self.index += char_count;
+        let newline_count = rhs.bytes().filter(|&b| b == b'\n').count();
+        self.line += newline_count;
+        if newline_count == 0 {
+            self.column += char_count;
+        } else {
+            match rhs.rfind('\n') {
+                Some(index) => self.column = rhs[index..].chars().count(),
+                None => self.column = 1,
+            }
+        }
+    }
+}
+
+impl SourcePos {
+    pub fn origin() -> SourcePos {
+        SourcePos {
+            line: 1,
+            column: 1,
+            index: 0,
+        }
+    }
+
+    pub fn span_of(self, slice: &str) -> SourceLoc {
+        SourceLoc {
+            start: self,
+            end: self + slice,
+        }
+    }
+}
+
+#[derive(JsonSchema, Serialize, Deserialize, Eq, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct SourceLoc {
     start: SourcePos,
     end: SourcePos,
+}
+
+impl SourceLoc {
+    pub fn new(start: SourcePos, end: SourcePos) -> SourceLoc {
+        SourceLoc { start, end }
+    }
+    pub fn range_of_str(str: &str, range: &Range<usize>) -> SourceLoc {
+        let start = SourcePos::origin() + &str[0..range.start];
+        let end = start + &str[range.start..range.end];
+        SourceLoc { start, end }
+    }
+    pub fn str_from_to(str: &str, from: usize, to: usize) -> SourceLoc {
+        let start = SourcePos::origin() + &str[0..from];
+        let end = start + &str[from..to];
+        SourceLoc { start, end }
+    }
 }
 
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
@@ -33,10 +108,42 @@ pub struct ParseIssue {
     loc: Option<SourceLoc>,
 }
 
+impl ParseIssue {
+    pub fn new(
+        severity: ParseIssueSeverity,
+        code: &str,
+        message: Option<String>,
+        loc: Option<SourceLoc>,
+    ) -> ParseIssue {
+        ParseIssue {
+            severity,
+            code: code.into(),
+            message,
+            loc,
+        }
+    }
+    pub fn error(code: &str, message: Option<String>, loc: Option<SourceLoc>) -> ParseIssue {
+        ParseIssue {
+            severity: ParseIssueSeverity::Error,
+            code: code.into(),
+            message,
+            loc,
+        }
+    }
+    pub fn warning(code: &str, message: Option<String>, loc: Option<SourceLoc>) -> ParseIssue {
+        ParseIssue {
+            severity: ParseIssueSeverity::Warning,
+            code: code.into(),
+            message,
+            loc,
+        }
+    }
+}
+
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct ParseMatch<'h> {
     m: Match<'h>,
-    offs: usize,
+    start: SourcePos,
 }
 
 impl<'h> ParseMatch<'h> {
@@ -52,7 +159,13 @@ impl<'h> ParseMatch<'h> {
     /// always safe to slice the corresponding haystack using this offset.
     #[inline]
     pub fn start(&self) -> usize {
-        self.m.start() + self.offs
+        self.m.start() + self.start.index
+    }
+
+    /// Returns the `SourcePos` of the start of the match.
+    #[inline]
+    pub fn start_pos(&self) -> SourcePos {
+        self.start
     }
 
     /// Returns the byte offset of the end of the match in the haystack. The
@@ -68,7 +181,19 @@ impl<'h> ParseMatch<'h> {
     /// always safe to slice the corresponding haystack using this offset.
     #[inline]
     pub fn end(&self) -> usize {
-        self.m.end() + self.offs
+        self.m.end() + self.start.index
+    }
+
+    /// Returns the `SourcePos` of the start of the match.
+    #[inline]
+    pub fn end_pos(&self) -> SourcePos {
+        self.start + self.m.as_str()
+    }
+
+    /// Returns the `SourceLoc` of the match.
+    #[inline]
+    pub fn loc(&self) -> SourceLoc {
+        self.start.span_of(self.m.as_str())
     }
 
     /// Returns true if and only if this match has a length of zero.
@@ -107,8 +232,8 @@ impl<'h> ParseMatch<'h> {
 
     /// Creates a new match from the given haystack and byte offsets.
     #[inline]
-    fn new(m: Match<'h>, offs: usize) -> ParseMatch<'h> {
-        ParseMatch { m, offs }
+    fn new(m: Match<'h>, start: SourcePos) -> ParseMatch<'h> {
+        ParseMatch { m, start }
     }
 }
 
@@ -136,7 +261,7 @@ impl<'h> From<ParseMatch<'h>> for core::ops::Range<usize> {
 
 pub struct ParseCaptures<'h> {
     captures: Captures<'h>,
-    offs: usize,
+    start: SourcePos,
 }
 
 impl<'h> ParseCaptures<'h> {
@@ -165,7 +290,10 @@ impl<'h> ParseCaptures<'h> {
     #[inline]
     pub fn get(&self, i: usize) -> Option<ParseMatch<'h>> {
         match self.captures.get(i) {
-            Some(m) => Some(ParseMatch::new(m, self.offs)),
+            Some(m) => Some(ParseMatch::new(
+                m,
+                self.start + &self.get_match().as_str()[0..m.start()],
+            )),
             None => None,
         }
     }
@@ -188,7 +316,8 @@ impl<'h> ParseCaptures<'h> {
     /// ```
     #[inline]
     pub fn get_match(&self) -> ParseMatch<'h> {
-        self.get(0).unwrap()
+        let m = self.captures.get(0).unwrap();
+        ParseMatch::new(m, self.start)
     }
 
     /// Returns the `Match` associated with the capture group named `name`. If
@@ -223,7 +352,10 @@ impl<'h> ParseCaptures<'h> {
     #[inline]
     pub fn name(&self, name: &str) -> Option<ParseMatch<'h>> {
         match self.captures.name(name) {
-            Some(m) => Some(ParseMatch::new(m, self.offs)),
+            Some(m) => Some(ParseMatch::new(
+                m,
+                self.start + &self.get_match().as_str()[0..m.start()],
+            )),
             None => None,
         }
     }
@@ -395,6 +527,7 @@ impl<'h> ParseCaptures<'h> {
 pub struct ParseState<'i> {
     input: &'i str,
     index: usize,
+    pos: SourcePos,
 }
 
 fn check_parse_regex(regex: &Regex) {
@@ -405,9 +538,21 @@ fn check_parse_regex(regex: &Regex) {
 }
 
 impl<'i> ParseState<'i> {
+    pub fn new(input: &'i str, pos: SourcePos) -> ParseState<'i> {
+        ParseState {
+            input,
+            index: 0,
+            pos,
+        }
+    }
+
     /// Returns the current parse index.
     pub fn index(&self) -> usize {
         self.index
+    }
+
+    pub fn pos(&self) -> SourcePos {
+        self.pos
     }
 
     /// Returns `true` if the current parse index has reached the end of
@@ -421,7 +566,7 @@ impl<'i> ParseState<'i> {
     pub fn peek(&self, regex: &Regex) -> Option<ParseMatch<'i>> {
         check_parse_regex(regex);
         match regex.find(&self.input[self.index..]) {
-            Some(m) => Some(ParseMatch::new(m, self.index)),
+            Some(m) => Some(ParseMatch::new(m, self.pos)),
             None => None,
         }
     }
@@ -433,8 +578,9 @@ impl<'i> ParseState<'i> {
         check_parse_regex(regex);
         match regex.find(&self.input[self.index..]) {
             Some(m) => {
-                let result = Some(ParseMatch::new(m, self.index));
+                let result = Some(ParseMatch::new(m, self.pos));
                 self.index += m.end();
+                self.pos += m.as_str();
                 result
             }
             None => None,
@@ -448,12 +594,14 @@ impl<'i> ParseState<'i> {
         check_parse_regex(regex);
         match regex.captures(&self.input[self.index..]) {
             Some(c) => {
-                let end = c.get_match().end();
+                let match_ = c.get_match();
+                let end = match_.end();
                 let result = Some(ParseCaptures {
                     captures: c,
-                    offs: self.index,
+                    start: self.pos,
                 });
                 self.index += end;
+                self.pos += match_.as_str();
                 result
             }
             None => None,
@@ -466,10 +614,93 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_source_pos_add() {
+        assert_eq!(
+            SourcePos::origin() + "\n",
+            SourcePos {
+                line: 2,
+                column: 1,
+                index: 1
+            }
+        );
+        assert_eq!(
+            SourcePos::origin() + "\r\n",
+            SourcePos {
+                line: 2,
+                column: 1,
+                index: 2
+            }
+        );
+
+        assert_eq!(
+            SourcePos::origin() + "foobar",
+            SourcePos {
+                line: 1,
+                column: 7,
+                index: 6
+            }
+        );
+
+        assert_eq!(
+            SourcePos::origin() + "foo\nbar",
+            SourcePos {
+                line: 2,
+                column: 4,
+                index: 7
+            }
+        );
+
+        assert_eq!(
+            SourcePos::origin() + "foo\n\nbar",
+            SourcePos {
+                line: 3,
+                column: 4,
+                index: 8
+            }
+        );
+
+        assert_eq!(
+            SourcePos::origin() + "foo\n\nba\nr",
+            SourcePos {
+                line: 4,
+                column: 2,
+                index: 9
+            }
+        );
+
+        assert_eq!(
+            SourcePos {
+                line: 10,
+                column: 5,
+                index: 8,
+            } + "foobar",
+            SourcePos {
+                line: 10,
+                column: 11,
+                index: 14
+            }
+        );
+
+        assert_eq!(
+            SourcePos {
+                line: 10,
+                column: 5,
+                index: 8,
+            } + "foo\n\nba\nr",
+            SourcePos {
+                line: 13,
+                column: 2,
+                index: 17
+            }
+        );
+    }
+
+    #[test]
     fn test_parse_state() {
         let mut p = ParseState {
-            input: &"foobar",
+            input: "foobar",
             index: 0,
+            pos: SourcePos::origin(),
         };
 
         let foo = Regex::new(r"^foo").unwrap();
