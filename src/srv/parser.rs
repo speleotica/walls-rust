@@ -114,17 +114,15 @@ impl<'i> WallsSrvParser<'i> {
             "#prefix1" => self.parse_prefix_directive(directive_match, PrefixLevel::Prefix1),
             "#prefix2" => self.parse_prefix_directive(directive_match, PrefixLevel::Prefix2),
             "#prefix3" => self.parse_prefix_directive(directive_match, PrefixLevel::Prefix3),
-            _ => MaybeValidSrvItem::Invalid {
-                invalid: (InvalidSrvItem::Unknown {
-                    text: directive.into(),
-                    loc: Some(loc),
-                }),
-                issues: Some(vec![self.push_error(
-                    EINVALIDDIRECTIVE,
-                    Some("Invalid directive".into()),
-                    Some(loc),
-                )]),
-            },
+            _ => InvalidSrvItem::Unknown {
+                text: directive.into(),
+                loc: Some(loc),
+            }
+            .with_issues(vec![self.push_error(
+                EINVALIDDIRECTIVE,
+                Some("Invalid directive".into()),
+                Some(loc),
+            )]),
         }
     }
     fn parse_units_directive(&mut self, directive_match: ParseMatch<'i>) -> MaybeValidSrvItem {
@@ -137,7 +135,7 @@ impl<'i> WallsSrvParser<'i> {
         while self.skip_whitespace() {
             todo!("implement options parsing")
         }
-        let loc = Some(SourceLoc::new(directive_match.start_pos(), self.pos()));
+        let loc = Some(directive_match.start_pos().up_to(self.pos()));
 
         let comment = self.parse_comment_and_eol().and_then(|m| {
             locs.comment = Some(m.loc());
@@ -162,15 +160,13 @@ impl<'i> WallsSrvParser<'i> {
             }
             .into()
         } else {
-            MaybeValidSrvItem::Invalid {
-                invalid: InvalidSrvItem::UnitsDirective {
-                    options,
-                    comment,
-                    loc,
-                    locs: Some(locs),
-                },
-                issues: (!issues.is_empty()).then_some(issues),
+            InvalidSrvItem::UnitsDirective {
+                options,
+                comment,
+                loc,
+                locs: Some(locs),
             }
+            .with_issues(issues)
         }
     }
     fn parse_prefix_directive(
@@ -196,7 +192,7 @@ impl<'i> WallsSrvParser<'i> {
             self.settings.prefix[index] = prefix_or_empty;
         }
 
-        let loc = Some(SourceLoc::new(directive_match.start_pos(), self.pos()));
+        let loc = Some(directive_match.start_pos().up_to(self.pos()));
 
         let comment = self.parse_comment_and_eol().and_then(|m| {
             locs.comment = Some(m.loc());

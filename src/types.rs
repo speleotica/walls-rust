@@ -62,10 +62,11 @@ impl SourcePos {
     }
 
     pub fn span_of(self, slice: &str) -> SourceLoc {
-        SourceLoc {
-            start: self,
-            end: self + slice,
-        }
+        self.up_to(self + slice)
+    }
+
+    pub fn up_to(self, end: SourcePos) -> SourceLoc {
+        SourceLoc::new(self, end)
     }
 }
 
@@ -78,17 +79,20 @@ pub struct SourceLoc {
 
 impl SourceLoc {
     pub fn new(start: SourcePos, end: SourcePos) -> SourceLoc {
+        assert!(start.index <= end.index);
+        assert!(start.line <= end.line);
+        assert!(start.line < end.line || start.column <= end.column);
         SourceLoc { start, end }
     }
     pub fn range_of_str(str: &str, range: &Range<usize>) -> SourceLoc {
         let start = SourcePos::origin() + &str[0..range.start];
         let end = start + &str[range.start..range.end];
-        SourceLoc { start, end }
+        start.up_to(end)
     }
     pub fn str_from_to(str: &str, from: usize, to: usize) -> SourceLoc {
         let start = SourcePos::origin() + &str[0..from];
         let end = start + &str[from..to];
-        SourceLoc { start, end }
+        start.up_to(end)
     }
 }
 

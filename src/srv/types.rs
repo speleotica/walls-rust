@@ -1302,6 +1302,15 @@ pub enum InvalidSrvItem {
     },
 }
 
+impl InvalidSrvItem {
+    pub fn with_issues(self, issues: Vec<usize>) -> MaybeValidSrvItem {
+        MaybeValidSrvItem::Invalid {
+            invalid: self,
+            issues: (!issues.is_empty()).then_some(issues),
+        }
+    }
+}
+
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 #[schemars(deny_unknown_fields)]
