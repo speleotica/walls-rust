@@ -102,10 +102,10 @@ pub enum ParseIssueSeverity {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct ParseIssue {
-    severity: ParseIssueSeverity,
-    code: String,
-    message: Option<String>,
-    loc: Option<SourceLoc>,
+    pub severity: ParseIssueSeverity,
+    pub code: String,
+    pub message: Option<String>,
+    pub loc: Option<SourceLoc>,
 }
 
 impl ParseIssue {
@@ -121,6 +121,9 @@ impl ParseIssue {
             message,
             loc,
         }
+    }
+    pub fn is_error(&self) -> bool {
+        self.severity == ParseIssueSeverity::Error
     }
     pub fn error(code: &str, message: Option<String>, loc: Option<SourceLoc>) -> ParseIssue {
         ParseIssue {
@@ -568,6 +571,21 @@ impl<'i> ParseState<'i> {
         match regex.find(&self.input[self.index..]) {
             Some(m) => Some(ParseMatch::new(m, self.pos)),
             None => None,
+        }
+    }
+
+    /// Returns `true` if `regex` (which must start with ^) matches at
+    /// the current parse index, and advances the parse index to the end
+    /// of the match.
+    pub fn is_match(&mut self, regex: &Regex) -> bool {
+        check_parse_regex(regex);
+        match regex.find(&self.input[self.index..]) {
+            Some(m) => {
+                self.index += m.end();
+                self.pos += m.as_str();
+                true
+            }
+            None => false,
         }
     }
 

@@ -11,14 +11,14 @@ pub struct InvalidValue {
     pub issues: Option<Vec<usize>>,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum ShotType {
     CompassAndTape,
     Rectilinear,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum LengthUnit {
     Meters,
@@ -26,11 +26,32 @@ pub enum LengthUnit {
     Inches,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct Length {
     pub value: f64,
     pub unit: LengthUnit,
+}
+
+impl Length {
+    pub fn meters(value: f64) -> Length {
+        Length {
+            value,
+            unit: LengthUnit::Meters,
+        }
+    }
+    pub fn feet(value: f64) -> Length {
+        Length {
+            value,
+            unit: LengthUnit::Feet,
+        }
+    }
+    pub fn inches(value: f64) -> Length {
+        Length {
+            value,
+            unit: LengthUnit::Inches,
+        }
+    }
 }
 
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
@@ -41,7 +62,7 @@ pub enum MaybeValidLength {
     Invalid(InvalidValue),
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum AngleUnit {
     Degrees,
@@ -49,11 +70,32 @@ pub enum AngleUnit {
     Grads,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct Angle {
     pub value: f64,
     pub unit: AngleUnit,
+}
+
+impl Angle {
+    pub fn degrees(value: f64) -> Angle {
+        Angle {
+            value,
+            unit: AngleUnit::Degrees,
+        }
+    }
+    pub fn mils(value: f64) -> Angle {
+        Angle {
+            value,
+            unit: AngleUnit::Mils,
+        }
+    }
+    pub fn grads(value: f64) -> Angle {
+        Angle {
+            value,
+            unit: AngleUnit::Grads,
+        }
+    }
 }
 
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
@@ -64,7 +106,7 @@ pub enum MaybeValidAngle {
     Invalid(InvalidValue),
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum InclinationUnit {
     Degrees,
@@ -73,11 +115,38 @@ pub enum InclinationUnit {
     Percent,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct Inclination {
     pub value: f64,
     pub unit: InclinationUnit,
+}
+
+impl Inclination {
+    pub fn degrees(value: f64) -> Inclination {
+        Inclination {
+            value,
+            unit: InclinationUnit::Degrees,
+        }
+    }
+    pub fn mils(value: f64) -> Inclination {
+        Inclination {
+            value,
+            unit: InclinationUnit::Mils,
+        }
+    }
+    pub fn grads(value: f64) -> Inclination {
+        Inclination {
+            value,
+            unit: InclinationUnit::Grads,
+        }
+    }
+    pub fn percent(value: f64) -> Inclination {
+        Inclination {
+            value,
+            unit: InclinationUnit::Percent,
+        }
+    }
 }
 
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
@@ -88,7 +157,7 @@ pub enum MaybeValidInclination {
     Invalid(InvalidValue),
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum StationNameCaseConversion {
     Upper,
@@ -96,7 +165,7 @@ pub enum StationNameCaseConversion {
     Mixed,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum CompassAndTapeItem {
     Distance,
@@ -112,7 +181,7 @@ pub enum MaybeValidCompassAndTapeItem {
     Invalid(InvalidValue),
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum RectilinearItem {
     Easting,
@@ -128,7 +197,7 @@ pub enum MaybeValidRectilinearItem {
     Invalid(InvalidValue),
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum LrudStyle {
     FromStationPerpendicular,
@@ -137,7 +206,7 @@ pub enum LrudStyle {
     ToStationBisector,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum LrudItem {
     Left,
@@ -154,7 +223,7 @@ pub enum MaybeValidLrudItem {
     Invalid(InvalidValue),
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum TapingMethod {
     InstrumentToTarget,
@@ -163,7 +232,7 @@ pub enum TapingMethod {
     StationToTarget,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct SrvSettings {
     pub shot_type: ShotType,
@@ -173,8 +242,8 @@ pub struct SrvSettings {
     pub secondary_distance_unit: LengthUnit,
     pub frontsight_azimuth_unit: AngleUnit,
     pub backsight_azimuth_unit: AngleUnit,
-    pub frontsight_inclination_unit: AngleUnit,
-    pub backsight_inclination_unit: AngleUnit,
+    pub frontsight_inclination_unit: InclinationUnit,
+    pub backsight_inclination_unit: InclinationUnit,
     pub magnetic_declination: Angle,
     pub grid_north_correction: Angle,
     pub rectilinear_north_correction: Angle,
@@ -189,6 +258,7 @@ pub struct SrvSettings {
     pub station_name_case_conversion: StationNameCaseConversion,
     pub lrud_style: LrudStyle,
     pub lrud_order: [LrudItem; 4],
+    /// [ PREFIX1, PREFIX2, PREFIX3 ]
     pub prefix: [String; 3],
     pub taping_method: TapingMethod,
     pub horizontal_unit_variance: f64,
@@ -197,7 +267,56 @@ pub struct SrvSettings {
     pub segment: Option<String>,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+impl SrvSettings {
+    pub fn default() -> SrvSettings {
+        SrvSettings {
+            shot_type: ShotType::CompassAndTape,
+            compass_and_tape_order: vec![
+                CompassAndTapeItem::Distance,
+                CompassAndTapeItem::Azimuth,
+                CompassAndTapeItem::Inclination,
+            ],
+            rectilinear_order: vec![
+                RectilinearItem::Easting,
+                RectilinearItem::Northing,
+                RectilinearItem::Elevation,
+            ],
+            primary_distance_unit: LengthUnit::Meters,
+            secondary_distance_unit: LengthUnit::Meters,
+            frontsight_azimuth_unit: AngleUnit::Degrees,
+            backsight_azimuth_unit: AngleUnit::Degrees,
+            frontsight_inclination_unit: InclinationUnit::Degrees,
+            backsight_inclination_unit: InclinationUnit::Degrees,
+            magnetic_declination: Angle::degrees(0.0),
+            grid_north_correction: Angle::degrees(0.0),
+            rectilinear_north_correction: Angle::degrees(0.0),
+            distance_correction: Length::meters(0.0),
+            frontsight_azimuth_correction: Angle::degrees(0.0),
+            backsight_azimuth_correction: Angle::degrees(0.0),
+            frontsight_inclination_correction: Angle::degrees(0.0),
+            backsight_inclination_correction: Angle::degrees(0.0),
+            height_adjustment: Length::meters(0.0),
+            backsight_azimuth_options: BacksightOptions::default(),
+            backsight_inclination_options: BacksightOptions::default(),
+            station_name_case_conversion: StationNameCaseConversion::Mixed,
+            lrud_style: LrudStyle::FromStationPerpendicular,
+            lrud_order: [
+                LrudItem::Left,
+                LrudItem::Right,
+                LrudItem::Up,
+                LrudItem::Down,
+            ],
+            prefix: ["".into(), "".into(), "".into()],
+            taping_method: TapingMethod::InstrumentToTarget,
+            horizontal_unit_variance: 0.0,
+            vertical_unit_variance: 0.0,
+            flag: None,
+            segment: None,
+        }
+    }
+}
+
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct BacksightOptions {
     pub is_corrected: bool,
@@ -206,7 +325,18 @@ pub struct BacksightOptions {
     pub locs: Option<BacksightOptionsLocs>,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+impl BacksightOptions {
+    pub fn default() -> BacksightOptions {
+        BacksightOptions {
+            is_corrected: false,
+            tolerance: Angle::degrees(5.0),
+            do_not_average: false,
+            locs: None,
+        }
+    }
+}
+
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct BacksightOptionsLocs {
     pub is_corrected: Option<SourceLoc>,
@@ -234,12 +364,33 @@ pub enum MaybeValidBacksightOptions {
     },
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum PrefixLevel {
     Prefix1,
     Prefix2,
     Prefix3,
+}
+
+impl From<PrefixLevel> for usize {
+    fn from(level: PrefixLevel) -> Self {
+        match level {
+            PrefixLevel::Prefix1 => 0,
+            PrefixLevel::Prefix2 => 1,
+            PrefixLevel::Prefix3 => 2,
+        }
+    }
+}
+
+impl From<usize> for PrefixLevel {
+    fn from(level: usize) -> Self {
+        match level {
+            0 => PrefixLevel::Prefix1,
+            1 => PrefixLevel::Prefix2,
+            2 => PrefixLevel::Prefix3,
+            _ => panic!("Invalid prefix level index: {level}"),
+        }
+    }
 }
 
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
@@ -1144,6 +1295,7 @@ pub enum InvalidSrvItem {
         loc: Option<SourceLoc>,
         locs: Option<ShotLocs>,
     },
+    #[schemars(title = "UnknownItem")]
     Unknown {
         text: String,
         loc: Option<SourceLoc>,
@@ -1199,6 +1351,5 @@ impl From<WallsSrvFile> for MaybeValidWallsSrvFile {
     }
 }
 
-pub const EINVALIDLINE: &str = "EINVALIDLINE";
 pub const EINVALIDDIRECTIVE: &str = "EINVALIDDIRECTIVE";
-pub const EUNEXPECTED: &str = "";
+pub const EUNEXPECTED: &str = "EUNEXPECTED";
