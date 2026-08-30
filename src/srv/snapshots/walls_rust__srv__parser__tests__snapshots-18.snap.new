@@ -1,0 +1,22 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 25
+expression: "&parse_test_srv(\"#units order=en\")"
+---
+issues: ~
+items:
+  - comment: ~
+    loc: "#units order=en"
+    locs:
+      comment: ~
+      directive: "#units"
+    options:
+      - loc: order=en
+        locs:
+          option: order
+          order: en
+        option: RectilinearOrder
+        order:
+          - Easting
+          - Northing
+    type: UnitsDirective

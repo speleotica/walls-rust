@@ -1,6 +1,7 @@
 use std::{
     ops::{Add, AddAssign},
     range::Range,
+    sync::LazyLock,
 };
 
 use regex::{Captures, Match, Regex};
@@ -10,9 +11,11 @@ use serde::{Deserialize, Serialize};
 #[derive(JsonSchema, Serialize, Deserialize, Eq, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct SourcePos {
-    line: usize,
-    column: usize,
-    index: usize,
+    pub line: usize,
+    #[serde(rename = "col")]
+    pub column: usize,
+    #[serde(rename = "idx")]
+    pub index: usize,
 }
 
 impl Add<&str> for SourcePos {
@@ -73,8 +76,8 @@ impl SourcePos {
 #[derive(JsonSchema, Serialize, Deserialize, Eq, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct SourceLoc {
-    start: SourcePos,
-    end: SourcePos,
+    pub start: SourcePos,
+    pub end: SourcePos,
 }
 
 impl SourceLoc {
@@ -93,6 +96,16 @@ impl SourceLoc {
         let start = SourcePos::origin() + &str[0..from];
         let end = start + &str[from..to];
         start.up_to(end)
+    }
+    pub fn find_range(text: &str, pat: &str) -> Option<SourceLoc> {
+        text.find(pat)
+            .map(|start| SourceLoc::str_from_to(text, start, start + pat.len()))
+    }
+}
+
+impl From<SourcePos> for SourceLoc {
+    fn from(pos: SourcePos) -> Self {
+        pos.up_to(pos)
     }
 }
 
@@ -235,6 +248,12 @@ impl<'h> ParseMatch<'h> {
     #[inline]
     pub fn as_str(&self) -> &'h str {
         &self.m.as_str()
+    }
+
+    /// Creates a new `ParseState` with this match as input
+    #[inline]
+    pub fn reparse(&self) -> ParseState<'h> {
+        ParseState::new(self.as_str(), self.start_pos())
     }
 
     /// Creates a new match from the given haystack and byte offsets.
@@ -544,6 +563,8 @@ fn check_parse_regex(regex: &Regex) {
     }
 }
 
+const REST: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^.*").unwrap());
+
 impl<'i> ParseState<'i> {
     pub fn new(input: &'i str, pos: SourcePos) -> ParseState<'i> {
         ParseState {
@@ -628,6 +649,10 @@ impl<'i> ParseState<'i> {
             }
             None => None,
         }
+    }
+
+    pub fn rest(&mut self) -> ParseMatch<'i> {
+        self.find(&REST).unwrap()
     }
 }
 

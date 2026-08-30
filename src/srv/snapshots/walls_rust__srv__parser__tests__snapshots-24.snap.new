@@ -1,0 +1,30 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 31
+expression: "&parse_test_srv(\"#units order\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        comment: ~
+        loc: "#units order"
+        locs:
+          comment: ~
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: order
+              locs:
+                option: order
+                order: ~
+              option: Order
+              order: ~
+            issues:
+              - 0
+        type: UnitsDirective
+      issues: ~
+issues:
+  - code: EMISSINGVALUE
+    loc: ""
+    message: Missing =
+    severity: Error

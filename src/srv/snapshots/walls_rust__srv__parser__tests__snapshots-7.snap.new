@@ -1,0 +1,22 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 14
+expression: "&parse_test_srv(\"#units order=da\")"
+---
+issues: ~
+items:
+  - comment: ~
+    loc: "#units order=da"
+    locs:
+      comment: ~
+      directive: "#units"
+    options:
+      - loc: order=da
+        locs:
+          option: order
+          order: da
+        option: CompassAndTapeOrder
+        order:
+          - Distance
+          - Azimuth
+    type: UnitsDirective

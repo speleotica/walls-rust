@@ -1,0 +1,5822 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MaybeValidWallsSrvFile",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/WallsSrvFile"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "INVALID": {
+          "$ref": "#/$defs/InvalidWallsSrvFile"
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ParseIssue"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "INVALID",
+        "issues"
+      ]
+    }
+  ],
+  "$defs": {
+    "Angle": {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "$ref": "#/$defs/AngleUnit"
+        },
+        "value": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit"
+      ]
+    },
+    "AngleUnit": {
+      "type": "string",
+      "enum": [
+        "Degrees",
+        "Mils",
+        "Grads"
+      ]
+    },
+    "BacksightOptionsLocs": {
+      "type": "object",
+      "properties": {
+        "do_not_average": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_corrected": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tolerance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "Color": {
+      "type": "object",
+      "properties": {
+        "blue": {
+          "type": "integer",
+          "format": "uint8",
+          "maximum": 255,
+          "minimum": 0
+        },
+        "green": {
+          "type": "integer",
+          "format": "uint8",
+          "maximum": 255,
+          "minimum": 0
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ColorLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "red": {
+          "type": "integer",
+          "format": "uint8",
+          "maximum": 255,
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "red",
+        "green",
+        "blue"
+      ]
+    },
+    "ColorLocs": {
+      "type": "object",
+      "properties": {
+        "blue": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "green": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "red": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "Comment": {
+      "title": "Comment",
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": "string"
+        },
+        "inline": {
+          "type": "boolean"
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "type": {
+          "type": "string",
+          "const": "Comment"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "comment",
+        "inline"
+      ]
+    },
+    "CompassAndTapeItem": {
+      "type": "string",
+      "enum": [
+        "Distance",
+        "Azimuth",
+        "Inclination"
+      ]
+    },
+    "CompassAndTapeLocs": {
+      "type": "object",
+      "properties": {
+        "backsight_azimuth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "backsight_inclination": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "distance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "frontsight_azimuth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "frontsight_inclination": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "instrument_height": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_height": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "CorrectionOptionLocs": {
+      "type": "object",
+      "properties": {
+        "correction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "option": {
+          "$ref": "#/$defs/SourceLoc"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "option"
+      ]
+    },
+    "DateDirective": {
+      "title": "DateDirective",
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "day": {
+          "type": "integer",
+          "format": "uint8",
+          "maximum": 255,
+          "minimum": 0
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DateDirectiveLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "month": {
+          "type": "integer",
+          "format": "uint8",
+          "maximum": 255,
+          "minimum": 0
+        },
+        "type": {
+          "type": "string",
+          "const": "DateDirective"
+        },
+        "year": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "year",
+        "month",
+        "day"
+      ]
+    },
+    "DateDirectiveLocs": {
+      "type": "object",
+      "properties": {
+        "comment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "day": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "directive": {
+          "$ref": "#/$defs/SourceLoc"
+        },
+        "month": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "year": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "directive"
+      ]
+    },
+    "DeclinationOptionLocs": {
+      "type": "object",
+      "properties": {
+        "declination": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "option": {
+          "$ref": "#/$defs/SourceLoc"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "option"
+      ]
+    },
+    "FixDirective": {
+      "title": "FixDirective",
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "horizontal_variance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VarianceAssignment"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "location": {
+          "$ref": "#/$defs/FixLocation"
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FixDirectiveLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "segment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "station": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "FixDirective"
+        },
+        "vertical_variance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VarianceAssignment"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "station",
+        "location"
+      ]
+    },
+    "FixDirectiveLocs": {
+      "type": "object",
+      "properties": {
+        "comment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "directive": {
+          "$ref": "#/$defs/SourceLoc"
+        },
+        "horizontal_variance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "location": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "note": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "segment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "station": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "vertical_variance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "directive"
+      ]
+    },
+    "FixLocation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "LatLong": {
+              "type": "object",
+              "properties": {
+                "elevation": {
+                  "$ref": "#/$defs/Length"
+                },
+                "latitude": {
+                  "$ref": "#/$defs/Angle"
+                },
+                "loc": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourceLoc"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "longitude": {
+                  "$ref": "#/$defs/Angle"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "latitude",
+                "longitude",
+                "elevation"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "LatLong"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "Grid": {
+              "type": "object",
+              "properties": {
+                "easting": {
+                  "$ref": "#/$defs/Length"
+                },
+                "elevation": {
+                  "$ref": "#/$defs/Length"
+                },
+                "loc": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourceLoc"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "northing": {
+                  "$ref": "#/$defs/Length"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "easting",
+                "northing",
+                "elevation"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "Grid"
+          ]
+        }
+      ]
+    },
+    "FlagDirective": {
+      "title": "FlagDirective",
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "flag": {
+          "type": "string"
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FlagDirectiveLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "type": "string",
+          "const": "FlagDirective"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "stations",
+        "flag"
+      ]
+    },
+    "FlagDirectiveLocs": {
+      "type": "object",
+      "properties": {
+        "comment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "directive": {
+          "$ref": "#/$defs/SourceLoc"
+        },
+        "flag": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stations": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/$defs/SourceLoc"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "directive"
+      ]
+    },
+    "FlagOptionLocs": {
+      "type": "object",
+      "properties": {
+        "flag": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "option": {
+          "$ref": "#/$defs/SourceLoc"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "option"
+      ]
+    },
+    "Inclination": {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "$ref": "#/$defs/InclinationUnit"
+        },
+        "value": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit"
+      ]
+    },
+    "InclinationUnit": {
+      "type": "string",
+      "enum": [
+        "Degrees",
+        "Mils",
+        "Grads",
+        "Percent"
+      ]
+    },
+    "InvalidColor": {
+      "type": "object",
+      "properties": {
+        "blue": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MaybeValidU8"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "green": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MaybeValidU8"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ColorLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "red": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MaybeValidU8"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "InvalidFixLocation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "LatLong": {
+              "type": "object",
+              "properties": {
+                "elevation": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/MaybeValidLength"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "latitude": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/MaybeValidAngle"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "loc": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourceLoc"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "longitude": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/MaybeValidAngle"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "LatLong"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "Grid": {
+              "type": "object",
+              "properties": {
+                "easting": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/MaybeValidLength"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "elevation": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/MaybeValidLength"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "loc": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SourceLoc"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "northing": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/MaybeValidLength"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "Grid"
+          ]
+        }
+      ]
+    },
+    "InvalidShotMeasurements": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "backsight_azimuth": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidAngle"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "backsight_inclination": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidInclination"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "distance": {
+              "$ref": "#/$defs/MaybeValidLength"
+            },
+            "frontsight_azimuth": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidAngle"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "frontsight_inclination": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidInclination"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "instrument_height": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidLength"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CompassAndTapeLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "target_height": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidLength"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "const": "CompassAndTape"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "distance"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "easting": {
+              "$ref": "#/$defs/MaybeValidLength"
+            },
+            "elevation": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidLength"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/RectilinearLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "northing": {
+              "$ref": "#/$defs/MaybeValidLength"
+            },
+            "type": {
+              "type": "string",
+              "const": "Rectilinear"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "easting",
+            "northing"
+          ]
+        }
+      ]
+    },
+    "InvalidSrvItem": {
+      "oneOf": [
+        {
+          "title": "InvalidUnitsDirective",
+          "type": "object",
+          "properties": {
+            "comment": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitsDirectiveLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/MaybeValidUnitsOption"
+              }
+            },
+            "type": {
+              "type": "string",
+              "const": "UnitsDirective"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "options"
+          ]
+        },
+        {
+          "title": "InvalidFixDirective",
+          "type": "object",
+          "properties": {
+            "comment": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "horizontal_variance": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidVarianceAssignment"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "location": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidFixLocation"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/FixDirectiveLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "note": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "segment": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "station": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "const": "FixDirective"
+            },
+            "vertical_variance": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidVarianceAssignment"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "title": "InvalidFlagDirective",
+          "type": "object",
+          "properties": {
+            "comment": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "flag": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/FlagDirectiveLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "stations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "type": {
+              "type": "string",
+              "const": "FlagDirective"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "stations"
+          ]
+        },
+        {
+          "title": "InvalidSymbolDirective",
+          "type": "object",
+          "properties": {
+            "color": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidColor"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "comment": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "flag": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SymbolDirectiveLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "opacity": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidSymbolOpacity"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "point_size": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidU32"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "shape": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidSymbolShape"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "const": "SymbolDirective"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "title": "InvalidDateDirective",
+          "type": "object",
+          "properties": {
+            "comment": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "day": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidU8"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/DateDirectiveLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "month": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidU8"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "const": "DateDirective"
+            },
+            "year": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidU32"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "title": "InvalidShot",
+          "type": "object",
+          "properties": {
+            "c_flag": {
+              "type": "boolean"
+            },
+            "comment": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "down": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidLength"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "from": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "horizontal_variance": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidVarianceAssignment"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "left": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidLength"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "left_azimuth": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidAngle"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ShotLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "lrud_facing_azimuth": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidAngle"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "measurements": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidShotMeasurements"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "right": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidLength"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "right_azimuth": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidAngle"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "segment": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "to": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "const": "Shot"
+            },
+            "up": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidLength"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "vertical_variance": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidVarianceAssignment"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "c_flag"
+          ]
+        },
+        {
+          "title": "UnknownItem",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "text": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "Unknown"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "text"
+          ]
+        }
+      ]
+    },
+    "InvalidUnitsOption": {
+      "oneOf": [
+        {
+          "title": "InvalidCompassAndTapeOrderOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/OrderOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "CompassAndTapeOrder"
+            },
+            "order": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/MaybeValidCompassAndTapeItem"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "order"
+          ]
+        },
+        {
+          "title": "InvalidRectilinearOrderOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/OrderOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "RectilinearOrder"
+            },
+            "order": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/MaybeValidRectilinearItem"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "order"
+          ]
+        },
+        {
+          "title": "InvalidFrontsightAzimuthUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "FrontsightAzimuthUnit"
+            },
+            "unit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidBacksightAzimuthUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "BacksightAzimuthUnit"
+            },
+            "unit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidPrimaryDistanceUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "PrimaryDistanceUnit"
+            },
+            "unit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidSecondaryDistanceUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "SecondaryDistanceUnit"
+            },
+            "unit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidFrontsightInclinationUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "FrontsightInclinationUnit"
+            },
+            "unit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidBacksightInclinationUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "BacksightInclinationUnit"
+            },
+            "unit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidMagneticDeclinationOption",
+          "type": "object",
+          "properties": {
+            "declination": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/DeclinationOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "MagneticDeclination"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidGridNorthCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "GridNorthCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidRectilinearNorthCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "RectilinearNorthCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidDistanceCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "DistanceCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidFrontsightAzimuthCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "FrontsightAzimuthCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidBacksightAzimuthCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "BacksightAzimuthCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidFrontsightInclinationCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "FrontsightInclinationCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidBacksightInclinationCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "BacksightInclinationCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidHeightAdjustmentOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "HeightAdjustment"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidBacksightAzimuthType",
+          "type": "object",
+          "properties": {
+            "do_not_average": {
+              "type": "boolean"
+            },
+            "is_corrected": {
+              "type": "boolean"
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/BacksightOptionsLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "BacksightAzimuthType"
+            },
+            "tolerance": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Angle"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "is_corrected",
+            "do_not_average"
+          ]
+        },
+        {
+          "title": "InvalidBacksightInclinationType",
+          "type": "object",
+          "properties": {
+            "do_not_average": {
+              "type": "boolean"
+            },
+            "is_corrected": {
+              "type": "boolean"
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/BacksightOptionsLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "BacksightInclinationType"
+            },
+            "tolerance": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Angle"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "is_corrected",
+            "do_not_average"
+          ]
+        },
+        {
+          "title": "InvalidStationNameCaseOption",
+          "type": "object",
+          "properties": {
+            "conversion": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/StationNameCaseOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "StationNameCase"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidLrudOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/LrudOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "Lrud"
+            },
+            "order": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "style": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidTapingMethodOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/TapingMethodOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "method": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "TapingMethod"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidUnitVarianceOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/VarianceOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "UnitVariance"
+            },
+            "variance": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidHorizontalUnitVarianceOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/VarianceOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "HorizontalUnitVariance"
+            },
+            "variance": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidVerticalUnitVarianceOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/VarianceOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "VerticalUnitVariance"
+            },
+            "variance": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidMacroOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MacroOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "name": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "Macro"
+            },
+            "value": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidUnknownOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "Unknown"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "value"
+          ]
+        }
+      ]
+    },
+    "InvalidValue": {
+      "type": "object",
+      "properties": {
+        "INVALID": {
+          "type": "string"
+        },
+        "issues": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "integer",
+            "format": "uint",
+            "minimum": 0
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "INVALID"
+      ]
+    },
+    "InvalidVarianceAssignment": {
+      "oneOf": [
+        {
+          "title": "InvalidLengthVarianceAssignment",
+          "type": "object",
+          "properties": {
+            "length": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "Length"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "length"
+          ]
+        },
+        {
+          "title": "InvalidVarianceAssignment",
+          "type": "object",
+          "properties": {
+            "length": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "RMSError"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "length"
+          ]
+        },
+        {
+          "title": "UnknownVarianceAssignment",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "Unknown"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "value"
+          ]
+        }
+      ]
+    },
+    "InvalidWallsSrvFile": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MaybeValidSrvItem"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "items"
+      ]
+    },
+    "Length": {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "$ref": "#/$defs/LengthUnit"
+        },
+        "value": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit"
+      ]
+    },
+    "LengthUnit": {
+      "type": "string",
+      "enum": [
+        "Meters",
+        "Feet",
+        "Inches"
+      ]
+    },
+    "LrudItem": {
+      "type": "string",
+      "enum": [
+        "Left",
+        "Right",
+        "Up",
+        "Down"
+      ]
+    },
+    "LrudOptionLocs": {
+      "type": "object",
+      "properties": {
+        "option": {
+          "$ref": "#/$defs/SourceLoc"
+        },
+        "order": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "option"
+      ]
+    },
+    "LrudStyle": {
+      "type": "string",
+      "enum": [
+        "FromStationPerpendicular",
+        "ToStationPerpendicular",
+        "FromStationBisector",
+        "ToStationBisector"
+      ]
+    },
+    "MacroOptionLocs": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "option": {
+          "$ref": "#/$defs/SourceLoc"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "option"
+      ]
+    },
+    "MaybeValidAngle": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Angle"
+        },
+        {
+          "$ref": "#/$defs/InvalidValue"
+        }
+      ]
+    },
+    "MaybeValidColor": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Color"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "INVALID": {
+              "$ref": "#/$defs/InvalidColor"
+            },
+            "issues": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint",
+                "minimum": 0
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "INVALID"
+          ]
+        }
+      ]
+    },
+    "MaybeValidCompassAndTapeItem": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CompassAndTapeItem"
+        },
+        {
+          "$ref": "#/$defs/InvalidValue"
+        }
+      ]
+    },
+    "MaybeValidFixLocation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FixLocation"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "INVALID": {
+              "$ref": "#/$defs/InvalidFixLocation"
+            },
+            "issues": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint",
+                "minimum": 0
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "INVALID"
+          ]
+        }
+      ]
+    },
+    "MaybeValidInclination": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Inclination"
+        },
+        {
+          "$ref": "#/$defs/InvalidValue"
+        }
+      ]
+    },
+    "MaybeValidLength": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Length"
+        },
+        {
+          "$ref": "#/$defs/InvalidValue"
+        }
+      ]
+    },
+    "MaybeValidRectilinearItem": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RectilinearItem"
+        },
+        {
+          "$ref": "#/$defs/InvalidValue"
+        }
+      ]
+    },
+    "MaybeValidShotMeasurements": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ShotMeasurements"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "INVALID": {
+              "$ref": "#/$defs/InvalidShotMeasurements"
+            },
+            "issues": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint",
+                "minimum": 0
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "INVALID"
+          ]
+        }
+      ]
+    },
+    "MaybeValidSrvItem": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SrvItem"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "INVALID": {
+              "$ref": "#/$defs/InvalidSrvItem"
+            },
+            "issues": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint",
+                "minimum": 0
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "INVALID"
+          ]
+        }
+      ]
+    },
+    "MaybeValidSymbolOpacity": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SymbolOpacity"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "INVALID": {
+              "type": "string"
+            },
+            "issues": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint",
+                "minimum": 0
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "INVALID"
+          ]
+        }
+      ]
+    },
+    "MaybeValidSymbolShape": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SymbolShape"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "INVALID": {
+              "type": "string"
+            },
+            "issues": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint",
+                "minimum": 0
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "INVALID"
+          ]
+        }
+      ]
+    },
+    "MaybeValidU32": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        {
+          "type": "object",
+          "properties": {
+            "INVALID": {
+              "type": "string"
+            },
+            "issues": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint",
+                "minimum": 0
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "INVALID"
+          ]
+        }
+      ]
+    },
+    "MaybeValidU8": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "format": "uint8",
+          "maximum": 255,
+          "minimum": 0
+        },
+        {
+          "type": "object",
+          "properties": {
+            "INVALID": {
+              "type": "string"
+            },
+            "issues": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint",
+                "minimum": 0
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "INVALID"
+          ]
+        }
+      ]
+    },
+    "MaybeValidUnitsOption": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/UnitsOption"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "INVALID": {
+              "$ref": "#/$defs/InvalidUnitsOption"
+            },
+            "issues": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint",
+                "minimum": 0
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "INVALID"
+          ]
+        }
+      ]
+    },
+    "MaybeValidVarianceAssignment": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VarianceAssignment"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "INVALID": {
+              "$ref": "#/$defs/InvalidVarianceAssignment"
+            },
+            "issues": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint",
+                "minimum": 0
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "INVALID"
+          ]
+        }
+      ]
+    },
+    "NoteDirective": {
+      "title": "NoteDirective",
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NoteDirectiveLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "note": {
+          "type": "string"
+        },
+        "station": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "NoteDirective"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "station",
+        "note"
+      ]
+    },
+    "NoteDirectiveLocs": {
+      "type": "object",
+      "properties": {
+        "comment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "directive": {
+          "$ref": "#/$defs/SourceLoc"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "station": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "directive"
+      ]
+    },
+    "OrderOptionLocs": {
+      "type": "object",
+      "properties": {
+        "option": {
+          "$ref": "#/$defs/SourceLoc"
+        },
+        "order": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "option"
+      ]
+    },
+    "ParseIssue": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "severity": {
+          "$ref": "#/$defs/ParseIssueSeverity"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "code"
+      ]
+    },
+    "ParseIssueSeverity": {
+      "type": "string",
+      "enum": [
+        "Error",
+        "Warning"
+      ]
+    },
+    "PrefixDirective": {
+      "title": "PrefixDirective",
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "level": {
+          "$ref": "#/$defs/PrefixLevel"
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PrefixDirectiveLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "prefix": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "const": "PrefixDirective"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "level"
+      ]
+    },
+    "PrefixDirectiveLocs": {
+      "type": "object",
+      "properties": {
+        "comment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "directive": {
+          "$ref": "#/$defs/SourceLoc"
+        },
+        "prefix": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "directive"
+      ]
+    },
+    "PrefixLevel": {
+      "type": "string",
+      "enum": [
+        "Prefix1",
+        "Prefix2",
+        "Prefix3"
+      ]
+    },
+    "PrefixOptionLocs": {
+      "type": "object",
+      "properties": {
+        "option": {
+          "$ref": "#/$defs/SourceLoc"
+        },
+        "prefix": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "option"
+      ]
+    },
+    "RectilinearItem": {
+      "type": "string",
+      "enum": [
+        "Easting",
+        "Northing",
+        "Elevation"
+      ]
+    },
+    "RectilinearLocs": {
+      "type": "object",
+      "properties": {
+        "easting": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "elevation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "northing": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "SegmentDirective": {
+      "title": "SegmentDirective",
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SymbolDirectiveLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "segment": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "SegmentDirective"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "segment"
+      ]
+    },
+    "Shot": {
+      "title": "Shot",
+      "type": "object",
+      "properties": {
+        "c_flag": {
+          "type": "boolean"
+        },
+        "comment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "down": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Length"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "from": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "horizontal_variance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VarianceAssignment"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "left": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Length"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "left_azimuth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Angle"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ShotLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lrud_facing_azimuth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Angle"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "measurements": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ShotMeasurements"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "right": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Length"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "right_azimuth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Angle"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "segment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "to": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "const": "Shot"
+        },
+        "up": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Length"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "vertical_variance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VarianceAssignment"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "c_flag"
+      ]
+    },
+    "ShotLocs": {
+      "type": "object",
+      "properties": {
+        "c_flag": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "comment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "down": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "horizontal_variance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "left": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "left_azimuth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lrud_facing_azimuth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "measurements": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "right": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "right_azimuth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "segment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "to": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "up": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "vertical_variance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ShotMeasurements": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "backsight_azimuth": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Angle"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "backsight_inclination": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Inclination"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "distance": {
+              "$ref": "#/$defs/Length"
+            },
+            "frontsight_azimuth": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Angle"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "frontsight_inclination": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Inclination"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "instrument_height": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Length"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CompassAndTapeLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "target_height": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Length"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "type": "string",
+              "const": "CompassAndTape"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "distance"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "easting": {
+              "$ref": "#/$defs/Length"
+            },
+            "elevation": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Length"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/RectilinearLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "northing": {
+              "$ref": "#/$defs/Length"
+            },
+            "type": {
+              "type": "string",
+              "const": "Rectilinear"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "easting",
+            "northing"
+          ]
+        }
+      ]
+    },
+    "SightDirection": {
+      "type": "string",
+      "enum": [
+        "Frontsight",
+        "Backsight"
+      ]
+    },
+    "SourceLoc": {
+      "type": "object",
+      "properties": {
+        "end": {
+          "$ref": "#/$defs/SourcePos"
+        },
+        "start": {
+          "$ref": "#/$defs/SourcePos"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end"
+      ]
+    },
+    "SourcePos": {
+      "type": "object",
+      "properties": {
+        "column": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "index": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "line": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "line",
+        "column",
+        "index"
+      ]
+    },
+    "SrvItem": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/UnitsDirective"
+        },
+        {
+          "$ref": "#/$defs/SegmentDirective"
+        },
+        {
+          "$ref": "#/$defs/FixDirective"
+        },
+        {
+          "$ref": "#/$defs/PrefixDirective"
+        },
+        {
+          "$ref": "#/$defs/NoteDirective"
+        },
+        {
+          "$ref": "#/$defs/FlagDirective"
+        },
+        {
+          "$ref": "#/$defs/SymbolDirective"
+        },
+        {
+          "$ref": "#/$defs/DateDirective"
+        },
+        {
+          "$ref": "#/$defs/Shot"
+        },
+        {
+          "$ref": "#/$defs/Comment"
+        }
+      ]
+    },
+    "StationNameCaseConversion": {
+      "type": "string",
+      "enum": [
+        "Upper",
+        "Lower",
+        "Mixed"
+      ]
+    },
+    "StationNameCaseOptionLocs": {
+      "type": "object",
+      "properties": {
+        "conversion": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "option": {
+          "$ref": "#/$defs/SourceLoc"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "option"
+      ]
+    },
+    "SymbolDirective": {
+      "title": "SymbolDirective",
+      "type": "object",
+      "properties": {
+        "color": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Color"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "comment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "flag": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SymbolDirectiveLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "opacity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SymbolOpacity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "point_size": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SymbolShape"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "type": {
+          "type": "string",
+          "const": "SymbolDirective"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ]
+    },
+    "SymbolDirectiveLocs": {
+      "type": "object",
+      "properties": {
+        "color": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "comment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "directive": {
+          "$ref": "#/$defs/SourceLoc"
+        },
+        "flag": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "opacity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "point_size": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "directive"
+      ]
+    },
+    "SymbolOpacity": {
+      "type": "string",
+      "enum": [
+        "Solid",
+        "Opaque",
+        "Clear",
+        "Transparent"
+      ]
+    },
+    "SymbolShape": {
+      "type": "string",
+      "enum": [
+        "Square",
+        "Circle",
+        "Triangle",
+        "PlusSign"
+      ]
+    },
+    "TapingMethod": {
+      "type": "string",
+      "enum": [
+        "InstrumentToTarget",
+        "StationToStation",
+        "InstrumentToStation",
+        "StationToTarget"
+      ]
+    },
+    "TapingMethodOptionLocs": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "option": {
+          "$ref": "#/$defs/SourceLoc"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "option"
+      ]
+    },
+    "UnitOptionLocs": {
+      "type": "object",
+      "properties": {
+        "option": {
+          "$ref": "#/$defs/SourceLoc"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "option"
+      ]
+    },
+    "UnitsDirective": {
+      "title": "UnitsDirective",
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "loc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UnitsDirectiveLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UnitsOption"
+          }
+        },
+        "type": {
+          "type": "string",
+          "const": "UnitsDirective"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "options"
+      ]
+    },
+    "UnitsDirectiveLocs": {
+      "type": "object",
+      "properties": {
+        "comment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "directive": {
+          "$ref": "#/$defs/SourceLoc"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "directive"
+      ]
+    },
+    "UnitsOption": {
+      "oneOf": [
+        {
+          "title": "CompassAndTapeOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "CompassAndTape"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "RectilinearOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "Rectilinear"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "CompassAndTapeOrderOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/OrderOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "CompassAndTapeOrder"
+            },
+            "order": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/CompassAndTapeItem"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "order"
+          ]
+        },
+        {
+          "title": "RectilinearOrderOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/OrderOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "RectilinearOrder"
+            },
+            "order": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/RectilinearItem"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "order"
+          ]
+        },
+        {
+          "title": "FrontsightAzimuthUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "FrontsightAzimuthUnit"
+            },
+            "unit": {
+              "$ref": "#/$defs/AngleUnit"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "unit"
+          ]
+        },
+        {
+          "title": "BacksightAzimuthUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "BacksightAzimuthUnit"
+            },
+            "unit": {
+              "$ref": "#/$defs/AngleUnit"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "unit"
+          ]
+        },
+        {
+          "title": "PrimaryDistanceUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "PrimaryDistanceUnit"
+            },
+            "unit": {
+              "$ref": "#/$defs/LengthUnit"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "unit"
+          ]
+        },
+        {
+          "title": "SecondaryDistanceUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "SecondaryDistanceUnit"
+            },
+            "unit": {
+              "$ref": "#/$defs/LengthUnit"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "unit"
+          ]
+        },
+        {
+          "title": "DistanceUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "DistanceUnit"
+            },
+            "unit": {
+              "$ref": "#/$defs/LengthUnit"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "unit"
+          ]
+        },
+        {
+          "title": "FrontsightInclinationUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "FrontsightInclinationUnit"
+            },
+            "unit": {
+              "$ref": "#/$defs/InclinationUnit"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "unit"
+          ]
+        },
+        {
+          "title": "BacksightInclinationUnitOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/UnitOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "BacksightInclinationUnit"
+            },
+            "unit": {
+              "$ref": "#/$defs/InclinationUnit"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "unit"
+          ]
+        },
+        {
+          "title": "MagneticDeclinationOption",
+          "type": "object",
+          "properties": {
+            "declination": {
+              "$ref": "#/$defs/Angle"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/DeclinationOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "MagneticDeclination"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "declination"
+          ]
+        },
+        {
+          "title": "GridNorthCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "$ref": "#/$defs/Angle"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "GridNorthCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "correction"
+          ]
+        },
+        {
+          "title": "RectilinearNorthCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "$ref": "#/$defs/Angle"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "RectilinearNorthCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "correction"
+          ]
+        },
+        {
+          "title": "DistanceCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "$ref": "#/$defs/Length"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "DistanceCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "correction"
+          ]
+        },
+        {
+          "title": "AzimuthCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "$ref": "#/$defs/Angle"
+            },
+            "direction": {
+              "$ref": "#/$defs/SightDirection"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "AzimuthCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "direction",
+            "correction"
+          ]
+        },
+        {
+          "title": "InclinationCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "$ref": "#/$defs/Angle"
+            },
+            "direction": {
+              "$ref": "#/$defs/SightDirection"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "InclinationCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "direction",
+            "correction"
+          ]
+        },
+        {
+          "title": "HeightAdjustmentOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "$ref": "#/$defs/Length"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "HeightAdjustment"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "correction"
+          ]
+        },
+        {
+          "title": "BacksightAzimuthType",
+          "type": "object",
+          "properties": {
+            "do_not_average": {
+              "type": "boolean"
+            },
+            "is_corrected": {
+              "type": "boolean"
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/BacksightOptionsLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "BacksightAzimuthType"
+            },
+            "tolerance": {
+              "$ref": "#/$defs/Angle"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "is_corrected",
+            "tolerance",
+            "do_not_average"
+          ]
+        },
+        {
+          "title": "BacksightInclinationType",
+          "type": "object",
+          "properties": {
+            "do_not_average": {
+              "type": "boolean"
+            },
+            "is_corrected": {
+              "type": "boolean"
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/BacksightOptionsLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "BacksightInclinationType"
+            },
+            "tolerance": {
+              "$ref": "#/$defs/Angle"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "is_corrected",
+            "tolerance",
+            "do_not_average"
+          ]
+        },
+        {
+          "title": "ResetOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "Reset"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "SaveOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "Save"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "RestoreOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "Restore"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "StationNameCaseOption",
+          "type": "object",
+          "properties": {
+            "conversion": {
+              "$ref": "#/$defs/StationNameCaseConversion"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/StationNameCaseOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "StationNameCase"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "conversion"
+          ]
+        },
+        {
+          "title": "LrudOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/LrudOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "Lrud"
+            },
+            "order": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "$ref": "#/$defs/LrudItem"
+              },
+              "maxItems": 4,
+              "minItems": 4
+            },
+            "style": {
+              "$ref": "#/$defs/LrudStyle"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "style"
+          ]
+        },
+        {
+          "title": "PrefixOption",
+          "type": "object",
+          "properties": {
+            "level": {
+              "$ref": "#/$defs/PrefixLevel"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/PrefixOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "Prefix"
+            },
+            "prefix": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "level"
+          ]
+        },
+        {
+          "title": "TapingMethodOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/TapingMethodOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "method": {
+              "$ref": "#/$defs/TapingMethod"
+            },
+            "option": {
+              "type": "string",
+              "const": "TapingMethod"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "method"
+          ]
+        },
+        {
+          "title": "UnitVarianceOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/VarianceOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "UnitVariance"
+            },
+            "variance": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "variance"
+          ]
+        },
+        {
+          "title": "HorizontalUnitVarianceOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/VarianceOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "HorizontalUnitVariance"
+            },
+            "variance": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "variance"
+          ]
+        },
+        {
+          "title": "VerticalUnitVarianceOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/VarianceOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "VerticalUnitVariance"
+            },
+            "variance": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "variance"
+          ]
+        },
+        {
+          "title": "FlagOption",
+          "type": "object",
+          "properties": {
+            "flag": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/FlagOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "Flag"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "MacroOption",
+          "type": "object",
+          "properties": {
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MacroOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "name": {
+              "type": "string"
+            },
+            "option": {
+              "type": "string",
+              "const": "Macro"
+            },
+            "value": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "name"
+          ]
+        }
+      ]
+    },
+    "VarianceAssignment": {
+      "oneOf": [
+        {
+          "title": "LengthVarianceAssignment",
+          "type": "object",
+          "properties": {
+            "length": {
+              "$ref": "#/$defs/Length"
+            },
+            "type": {
+              "type": "string",
+              "const": "Length"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "length"
+          ]
+        },
+        {
+          "title": "RMSErrorVarianceAssignment",
+          "type": "object",
+          "properties": {
+            "length": {
+              "$ref": "#/$defs/Length"
+            },
+            "type": {
+              "type": "string",
+              "const": "RMSError"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "length"
+          ]
+        },
+        {
+          "title": "FloatShotVarianceAssignment",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "FloatShot"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "title": "FloatTraverseVarianceAssignment",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "FloatTraverse"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ]
+        }
+      ]
+    },
+    "VarianceOptionLocs": {
+      "type": "object",
+      "properties": {
+        "option": {
+          "$ref": "#/$defs/SourceLoc"
+        },
+        "variance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "option"
+      ]
+    },
+    "WallsSrvFile": {
+      "type": "object",
+      "properties": {
+        "issues": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/$defs/ParseIssue"
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SrvItem"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "items"
+      ]
+    }
+  }
+}

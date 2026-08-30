@@ -1,0 +1,35 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 18
+expression: "&parse_test_srv(\"#units order=daqv\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        comment: ~
+        loc: "#units order=daqv"
+        locs:
+          comment: ~
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: order=daqv
+              locs:
+                option: order
+                order: daqv
+              option: Order
+              order:
+                - Distance
+                - Azimuth
+                - INVALID: q
+                  issues:
+                    - 0
+                - Inclination
+            issues: ~
+        type: UnitsDirective
+      issues: ~
+issues:
+  - code: EINVALIDORDERITEM
+    loc: da
+    message: Invalid measurement item
+    severity: Error

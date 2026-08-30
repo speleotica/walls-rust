@@ -1,0 +1,32 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 17
+expression: "&parse_test_srv(\"#units order=dv\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        comment: ~
+        loc: "#units order=dv"
+        locs:
+          comment: ~
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: order=dv
+              locs:
+                option: order
+                order: dv
+              option: Order
+              order:
+                - Distance
+                - Inclination
+            issues:
+              - 0
+        type: UnitsDirective
+      issues: ~
+issues:
+  - code: EINVALIDMEASUREMENTORDER
+    loc: dv
+    message: Invalid measurement order
+    severity: Error

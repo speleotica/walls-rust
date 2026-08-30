@@ -4,7 +4,8 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "cargo run | json2ts"
+    "start": "cargo run | json2ts",
+    "gen:py": "cargo run > src/srv/srv.schema.json && datamodel-codegen --input src/srv/srv.schema.json --input-file-type jsonschema --output-model-type pydantic_v2.BaseModel --preset practical-py312-20260826 --output test/codegen/py/srv.py"
   },
   "keywords": [],
   "author": "",

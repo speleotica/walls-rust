@@ -1,0 +1,23 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 19
+expression: "&parse_test_srv(\"#units order=enu\")"
+---
+issues: ~
+items:
+  - comment: ~
+    loc: "#units order=enu"
+    locs:
+      comment: ~
+      directive: "#units"
+    options:
+      - loc: order=enu
+        locs:
+          option: order
+          order: enu
+        option: RectilinearOrder
+        order:
+          - Easting
+          - Northing
+          - Elevation
+    type: UnitsDirective

@@ -1,0 +1,23 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 13
+expression: "&parse_test_srv(\"#units order=vad\")"
+---
+issues: ~
+items:
+  - comment: ~
+    loc: "#units order=vad"
+    locs:
+      comment: ~
+      directive: "#units"
+    options:
+      - loc: order=vad
+        locs:
+          option: order
+          order: vad
+        option: CompassAndTapeOrder
+        order:
+          - Inclination
+          - Azimuth
+          - Distance
+    type: UnitsDirective

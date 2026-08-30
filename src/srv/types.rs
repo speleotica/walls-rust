@@ -11,14 +11,14 @@ pub struct InvalidValue {
     pub issues: Option<Vec<usize>>,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum ShotType {
     CompassAndTape,
     Rectilinear,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum LengthUnit {
     Meters,
@@ -26,7 +26,7 @@ pub enum LengthUnit {
     Inches,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct Length {
     pub value: f64,
@@ -62,7 +62,7 @@ pub enum MaybeValidLength {
     Invalid(InvalidValue),
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum AngleUnit {
     Degrees,
@@ -70,7 +70,7 @@ pub enum AngleUnit {
     Grads,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct Angle {
     pub value: f64,
@@ -106,7 +106,7 @@ pub enum MaybeValidAngle {
     Invalid(InvalidValue),
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum InclinationUnit {
     Degrees,
@@ -115,7 +115,7 @@ pub enum InclinationUnit {
     Percent,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct Inclination {
     pub value: f64,
@@ -157,7 +157,7 @@ pub enum MaybeValidInclination {
     Invalid(InvalidValue),
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum StationNameCaseConversion {
     Upper,
@@ -165,7 +165,7 @@ pub enum StationNameCaseConversion {
     Mixed,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum CompassAndTapeItem {
     Distance,
@@ -173,17 +173,20 @@ pub enum CompassAndTapeItem {
     Inclination,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
-#[schemars(deny_unknown_fields)]
-#[serde(untagged)]
-pub enum MaybeValidCompassAndTapeItem {
-    Valid(CompassAndTapeItem),
-    Invalid(InvalidValue),
-}
-
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum RectilinearItem {
+    Easting,
+    Northing,
+    Elevation,
+}
+
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
+#[schemars(deny_unknown_fields)]
+pub enum OrderItem {
+    Distance,
+    Azimuth,
+    Inclination,
     Easting,
     Northing,
     Elevation,
@@ -192,12 +195,18 @@ pub enum RectilinearItem {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]
-pub enum MaybeValidRectilinearItem {
-    Valid(RectilinearItem),
+pub enum MaybeValidOrderItem {
+    Valid(OrderItem),
     Invalid(InvalidValue),
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+impl From<OrderItem> for MaybeValidOrderItem {
+    fn from(item: OrderItem) -> Self {
+        MaybeValidOrderItem::Valid(item)
+    }
+}
+
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum LrudStyle {
     FromStationPerpendicular,
@@ -206,7 +215,7 @@ pub enum LrudStyle {
     ToStationBisector,
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum LrudItem {
     Left,
@@ -223,7 +232,7 @@ pub enum MaybeValidLrudItem {
     Invalid(InvalidValue),
 }
 
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum TapingMethod {
     InstrumentToTarget,
@@ -247,11 +256,12 @@ pub struct SrvSettings {
     pub magnetic_declination: Angle,
     pub grid_north_correction: Angle,
     pub rectilinear_north_correction: Angle,
-    pub distance_correction: Length,
+    pub primary_distance_correction: Length,
+    pub secondary_distance_correction: Length,
     pub frontsight_azimuth_correction: Angle,
     pub backsight_azimuth_correction: Angle,
-    pub frontsight_inclination_correction: Angle,
-    pub backsight_inclination_correction: Angle,
+    pub frontsight_inclination_correction: Inclination,
+    pub backsight_inclination_correction: Inclination,
     pub height_adjustment: Length,
     pub backsight_azimuth_options: BacksightOptions,
     pub backsight_inclination_options: BacksightOptions,
@@ -290,11 +300,12 @@ impl SrvSettings {
             magnetic_declination: Angle::degrees(0.0),
             grid_north_correction: Angle::degrees(0.0),
             rectilinear_north_correction: Angle::degrees(0.0),
-            distance_correction: Length::meters(0.0),
+            primary_distance_correction: Length::meters(0.0),
+            secondary_distance_correction: Length::meters(0.0),
             frontsight_azimuth_correction: Angle::degrees(0.0),
             backsight_azimuth_correction: Angle::degrees(0.0),
-            frontsight_inclination_correction: Angle::degrees(0.0),
-            backsight_inclination_correction: Angle::degrees(0.0),
+            frontsight_inclination_correction: Inclination::degrees(0.0),
+            backsight_inclination_correction: Inclination::degrees(0.0),
             height_adjustment: Length::meters(0.0),
             backsight_azimuth_options: BacksightOptions::default(),
             backsight_inclination_options: BacksightOptions::default(),
@@ -313,6 +324,172 @@ impl SrvSettings {
             flag: None,
             segment: None,
         }
+    }
+
+    pub fn apply_option(&mut self, option: &UnitsOption) {
+        match option {
+            UnitsOption::FrontsightAzimuthCorrection {
+                correction,
+                loc: _,
+                locs: _,
+            } => self.frontsight_azimuth_correction = *correction,
+            UnitsOption::FrontsightAzimuthUnit {
+                unit,
+                loc: _,
+                locs: _,
+            } => self.frontsight_azimuth_unit = *unit,
+            UnitsOption::BacksightAzimuthCorrection {
+                correction,
+                loc: _,
+                locs: _,
+            } => self.backsight_azimuth_correction = *correction,
+            UnitsOption::BacksightAzimuthType(options) => {
+                self.backsight_azimuth_options = options.clone();
+            }
+            UnitsOption::BacksightAzimuthUnit {
+                unit,
+                loc: _,
+                locs: _,
+            } => self.backsight_azimuth_unit = *unit,
+            UnitsOption::FrontsightInclinationCorrection {
+                correction,
+                loc: _,
+                locs: _,
+            } => self.frontsight_inclination_correction = *correction,
+            UnitsOption::FrontsightInclinationUnit {
+                unit,
+                loc: _,
+                locs: _,
+            } => self.frontsight_inclination_unit = *unit,
+            UnitsOption::BacksightInclinationCorrection {
+                correction,
+                loc: _,
+                locs: _,
+            } => self.backsight_inclination_correction = *correction,
+            UnitsOption::BacksightInclinationType(options) => {
+                self.backsight_inclination_options = options.clone()
+            }
+            UnitsOption::BacksightInclinationUnit {
+                unit,
+                loc: _,
+                locs: _,
+            } => self.backsight_inclination_unit = *unit,
+            UnitsOption::CompassAndTape { loc: _ } => self.shot_type = ShotType::CompassAndTape,
+            UnitsOption::CompassAndTapeOrder {
+                order,
+                loc: _,
+                locs: _,
+            } => self.compass_and_tape_order = order.clone(),
+            UnitsOption::DistanceUnit { unit, loc: _ } => {
+                self.primary_distance_unit = *unit;
+                self.secondary_distance_unit = *unit;
+            }
+            UnitsOption::Flag {
+                flag,
+                loc: _,
+                locs: _,
+            } => self.flag = flag.clone(),
+            UnitsOption::GridNorthCorrection {
+                correction,
+                loc: _,
+                locs: _,
+            } => self.grid_north_correction = *correction,
+            UnitsOption::HeightAdjustment {
+                correction,
+                loc: _,
+                locs: _,
+            } => self.height_adjustment = *correction,
+            UnitsOption::HorizontalUnitVariance {
+                variance,
+                loc: _,
+                locs: _,
+            } => self.horizontal_unit_variance = *variance,
+            UnitsOption::VerticalUnitVariance {
+                variance,
+                loc: _,
+                locs: _,
+            } => self.vertical_unit_variance = *variance,
+            UnitsOption::UnitVariance {
+                variance,
+                loc: _,
+                locs: _,
+            } => {
+                self.horizontal_unit_variance = *variance;
+                self.vertical_unit_variance = *variance;
+            }
+            UnitsOption::Lrud {
+                style,
+                order,
+                loc: _,
+                locs: _,
+            } => {
+                self.lrud_style = *style;
+                if let Some(order) = order {
+                    self.lrud_order = *order;
+                }
+            }
+            UnitsOption::Macro {
+                name: _,
+                value: _,
+                loc: _,
+                locs: _,
+            } => todo!(),
+            UnitsOption::MagneticDeclination {
+                declination,
+                loc: _,
+                locs: _,
+            } => self.magnetic_declination = *declination,
+            UnitsOption::Prefix {
+                level,
+                prefix,
+                loc: _,
+                locs: _,
+            } => self.prefix[usize::from(*level)] = prefix.clone().unwrap_or("".into()),
+            UnitsOption::PrimaryDistanceCorrection {
+                correction,
+                loc: _,
+                locs: _,
+            } => self.primary_distance_correction = *correction,
+            UnitsOption::PrimaryDistanceUnit {
+                unit,
+                loc: _,
+                locs: _,
+            } => self.primary_distance_unit = *unit,
+            UnitsOption::Rectilinear { loc: _ } => self.shot_type = ShotType::Rectilinear,
+            UnitsOption::RectilinearNorthCorrection {
+                correction,
+                loc: _,
+                locs: _,
+            } => self.rectilinear_north_correction = *correction,
+            UnitsOption::RectilinearOrder {
+                order,
+                loc: _,
+                locs: _,
+            } => self.rectilinear_order = order.clone(),
+            UnitsOption::Reset { loc: _ } => {} // handled by `WallsSrvParser::apply_option`
+            UnitsOption::Restore { loc: _ } => {} // handled by `WallsSrvParser::apply_option`
+            UnitsOption::Save { loc: _ } => {}  // handled by `WallsSrvParser::apply_option`
+            UnitsOption::SecondaryDistanceCorrection {
+                correction,
+                loc: _,
+                locs: _,
+            } => self.secondary_distance_correction = *correction,
+            UnitsOption::SecondaryDistanceUnit {
+                unit,
+                loc: _,
+                locs: _,
+            } => self.secondary_distance_unit = *unit,
+            UnitsOption::StationNameCase {
+                conversion,
+                loc: _,
+                locs: _,
+            } => self.station_name_case_conversion = *conversion,
+            UnitsOption::TapingMethod {
+                method,
+                loc: _,
+                locs: _,
+            } => self.taping_method = *method,
+        };
     }
 }
 
@@ -397,160 +574,532 @@ impl From<usize> for PrefixLevel {
 #[serde(tag = "option")]
 #[schemars(deny_unknown_fields)]
 pub enum UnitsOption {
-    CompassAndTape {
-        loc: Option<SourceLoc>,
-    },
-    Rectilinear {
-        loc: Option<SourceLoc>,
-    },
+    #[schemars(title = "CompassAndTapeOption")]
+    CompassAndTape { loc: Option<SourceLoc> },
+    #[schemars(title = "RectilinearOption")]
+    Rectilinear { loc: Option<SourceLoc> },
+    #[schemars(title = "CompassAndTapeOrderOption")]
     CompassAndTapeOrder {
         order: Vec<CompassAndTapeItem>,
         loc: Option<SourceLoc>,
         locs: Option<OrderOptionLocs>,
     },
+    #[schemars(title = "RectilinearOrderOption")]
     RectilinearOrder {
         order: Vec<RectilinearItem>,
         loc: Option<SourceLoc>,
         locs: Option<OrderOptionLocs>,
     },
+    #[schemars(title = "FrontsightAzimuthUnitOption")]
     FrontsightAzimuthUnit {
         unit: AngleUnit,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "BacksightAzimuthUnitOption")]
     BacksightAzimuthUnit {
         unit: AngleUnit,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "PrimaryDistanceUnitOption")]
     PrimaryDistanceUnit {
         unit: LengthUnit,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "SecondaryDistanceUnitOption")]
     SecondaryDistanceUnit {
         unit: LengthUnit,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "DistanceUnitOption")]
     DistanceUnit {
         unit: LengthUnit,
         loc: Option<SourceLoc>,
-        locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "FrontsightInclinationUnitOption")]
     FrontsightInclinationUnit {
         unit: InclinationUnit,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "BacksightInclinationUnitOption")]
     BacksightInclinationUnit {
         unit: InclinationUnit,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "MagneticDeclinationOption")]
     MagneticDeclination {
         declination: Angle,
         loc: Option<SourceLoc>,
         locs: Option<DeclinationOptionLocs>,
     },
+    #[schemars(title = "GridNorthCorrectionOption")]
     GridNorthCorrection {
         correction: Angle,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "RectilinearNorthCorrectionOption")]
     RectilinearNorthCorrection {
         correction: Angle,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    DistanceCorrection {
+    #[schemars(title = "PrimaryDistanceCorrectionOption")]
+    PrimaryDistanceCorrection {
         correction: Length,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "SecondaryDistanceCorrectionOption")]
+    SecondaryDistanceCorrection {
+        correction: Length,
+        loc: Option<SourceLoc>,
+        locs: Option<CorrectionOptionLocs>,
+    },
+    #[schemars(title = "FrontsightAzimuthCorrectionOption")]
     FrontsightAzimuthCorrection {
         correction: Angle,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "BacksightAzimuthCorrectionOption")]
     BacksightAzimuthCorrection {
         correction: Angle,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "FrontsightInclinationCorrectionOption")]
     FrontsightInclinationCorrection {
-        correction: Angle,
+        correction: Inclination,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "FrontsightInclinationCorrectionOption")]
     BacksightInclinationCorrection {
-        correction: Angle,
+        correction: Inclination,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "HeightAdjustmentOption")]
     HeightAdjustment {
         correction: Length,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "BacksightAzimuthType")]
     BacksightAzimuthType(BacksightOptions),
+    #[schemars(title = "BacksightInclinationType")]
     BacksightInclinationType(BacksightOptions),
-    Reset {
-        loc: Option<SourceLoc>,
-    },
-    Save {
-        loc: Option<SourceLoc>,
-    },
-    Restore {
-        loc: Option<SourceLoc>,
-    },
+    #[schemars(title = "ResetOption")]
+    Reset { loc: Option<SourceLoc> },
+    #[schemars(title = "SaveOption")]
+    Save { loc: Option<SourceLoc> },
+    #[schemars(title = "RestoreOption")]
+    Restore { loc: Option<SourceLoc> },
+    #[schemars(title = "StationNameCaseOption")]
     StationNameCase {
         conversion: StationNameCaseConversion,
         loc: Option<SourceLoc>,
         locs: Option<StationNameCaseOptionLocs>,
     },
-    LrudStyle {
+    #[schemars(title = "LrudOption")]
+    Lrud {
         style: LrudStyle,
+        order: Option<[LrudItem; 4]>,
         loc: Option<SourceLoc>,
-        locs: Option<LrudStyleOptionLocs>,
+        locs: Option<LrudOptionLocs>,
     },
+    #[schemars(title = "PrefixOption")]
     Prefix {
         level: PrefixLevel,
         prefix: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<PrefixOptionLocs>,
     },
+    #[schemars(title = "TapingMethodOption")]
     TapingMethod {
         method: TapingMethod,
         loc: Option<SourceLoc>,
         locs: Option<TapingMethodOptionLocs>,
     },
+    #[schemars(title = "UnitVarianceOption")]
     UnitVariance {
         variance: f64,
         loc: Option<SourceLoc>,
         locs: Option<VarianceOptionLocs>,
     },
+    #[schemars(title = "HorizontalUnitVarianceOption")]
     HorizontalUnitVariance {
         variance: f64,
         loc: Option<SourceLoc>,
         locs: Option<VarianceOptionLocs>,
     },
+    #[schemars(title = "VerticalUnitVarianceOption")]
     VerticalUnitVariance {
         variance: f64,
         loc: Option<SourceLoc>,
         locs: Option<VarianceOptionLocs>,
     },
+    #[schemars(title = "FlagOption")]
     Flag {
         flag: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<FlagOptionLocs>,
     },
+    #[schemars(title = "MacroOption")]
     Macro {
         name: String,
         value: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<MacroOptionLocs>,
     },
+}
+
+impl UnitsOption {
+    pub fn compass_and_tape_order(
+        order: Vec<CompassAndTapeItem>,
+        option_loc: SourceLoc,
+        order_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::CompassAndTapeOrder {
+            order,
+            loc: order_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(OrderOptionLocs {
+                option: option_loc,
+                order: order_loc,
+            }),
+        }
+    }
+    pub fn rectilinear_order(
+        order: Vec<RectilinearItem>,
+        option_loc: SourceLoc,
+        order_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::RectilinearOrder {
+            order,
+            loc: order_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(OrderOptionLocs {
+                option: option_loc,
+                order: order_loc,
+            }),
+        }
+    }
+    pub fn distance_unit(unit: LengthUnit, loc: Option<SourceLoc>) -> UnitsOption {
+        UnitsOption::DistanceUnit { unit, loc }
+    }
+    pub fn primary_distance_unit(
+        unit: LengthUnit,
+        option_loc: SourceLoc,
+        unit_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::PrimaryDistanceUnit {
+            unit,
+            loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(UnitOptionLocs {
+                option: option_loc,
+                unit: unit_loc,
+            }),
+        }
+    }
+    pub fn secondary_distance_unit(
+        unit: LengthUnit,
+        option_loc: SourceLoc,
+        unit_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::SecondaryDistanceUnit {
+            unit,
+            loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(UnitOptionLocs {
+                option: option_loc,
+                unit: unit_loc,
+            }),
+        }
+    }
+    pub fn frontsight_azimuth_unit(
+        unit: AngleUnit,
+        option_loc: SourceLoc,
+        unit_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::FrontsightAzimuthUnit {
+            unit,
+            loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(UnitOptionLocs {
+                option: option_loc,
+                unit: unit_loc,
+            }),
+        }
+    }
+    pub fn backsight_azimuth_unit(
+        unit: AngleUnit,
+        option_loc: SourceLoc,
+        unit_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::FrontsightAzimuthUnit {
+            unit,
+            loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(UnitOptionLocs {
+                option: option_loc,
+                unit: unit_loc,
+            }),
+        }
+    }
+    pub fn frontsight_inclination_unit(
+        unit: InclinationUnit,
+        option_loc: SourceLoc,
+        unit_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::FrontsightInclinationUnit {
+            unit,
+            loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(UnitOptionLocs {
+                option: option_loc,
+                unit: unit_loc,
+            }),
+        }
+    }
+    pub fn backsight_inclination_unit(
+        unit: InclinationUnit,
+        option_loc: SourceLoc,
+        unit_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::BacksightInclinationUnit {
+            unit,
+            loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(UnitOptionLocs {
+                option: option_loc,
+                unit: unit_loc,
+            }),
+        }
+    }
+    pub fn primary_distance_correction(
+        correction: Length,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::PrimaryDistanceCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn secondary_distance_correction(
+        correction: Length,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::SecondaryDistanceCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn height_adjustment(
+        correction: Length,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::HeightAdjustment {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn frontsight_azimuth_correction(
+        correction: Angle,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::FrontsightAzimuthCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn backsight_azimuth_correction(
+        correction: Angle,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::BacksightAzimuthCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn frontsight_inclination_correction(
+        correction: Inclination,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::FrontsightInclinationCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn backsight_inclination_correction(
+        correction: Inclination,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::BacksightInclinationCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn magnetic_declination(
+        declination: Angle,
+        option_loc: SourceLoc,
+        declination_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::MagneticDeclination {
+            declination,
+            loc: declination_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(DeclinationOptionLocs {
+                option: option_loc,
+                declination: declination_loc,
+            }),
+        }
+    }
+    pub fn grid_north_correction(
+        correction: Angle,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::GridNorthCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn rect_north_correction(
+        correction: Angle,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::RectilinearNorthCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn station_name_case(
+        conversion: StationNameCaseConversion,
+        option_loc: SourceLoc,
+        conversion_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::StationNameCase {
+            conversion,
+            loc: conversion_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(StationNameCaseOptionLocs {
+                option: option_loc,
+                conversion: conversion_loc,
+            }),
+        }
+    }
+    pub fn taping_method(
+        method: TapingMethod,
+        option_loc: SourceLoc,
+        method_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::TapingMethod {
+            method,
+            loc: method_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(TapingMethodOptionLocs {
+                option: option_loc,
+                method: method_loc,
+            }),
+        }
+    }
+    pub fn horizontal_unit_variance(
+        variance: f64,
+        option_loc: SourceLoc,
+        variance_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::HorizontalUnitVariance {
+            variance,
+            loc: variance_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(VarianceOptionLocs {
+                option: option_loc,
+                variance: variance_loc,
+            }),
+        }
+    }
+    pub fn vertical_unit_variance(
+        variance: f64,
+        option_loc: SourceLoc,
+        variance_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::VerticalUnitVariance {
+            variance,
+            loc: variance_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(VarianceOptionLocs {
+                option: option_loc,
+                variance: variance_loc,
+            }),
+        }
+    }
+    pub fn unit_variance(
+        variance: f64,
+        option_loc: SourceLoc,
+        variance_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::UnitVariance {
+            variance,
+            loc: variance_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(VarianceOptionLocs {
+                option: option_loc,
+                variance: variance_loc,
+            }),
+        }
+    }
+    pub fn flag(
+        flag: Option<String>,
+        option_loc: SourceLoc,
+        flag_loc: Option<SourceLoc>,
+    ) -> UnitsOption {
+        UnitsOption::Flag {
+            flag,
+            loc: flag_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(FlagOptionLocs {
+                option: option_loc,
+                flag: flag_loc,
+            }),
+        }
+    }
 }
 
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
@@ -590,9 +1139,10 @@ pub struct StationNameCaseOptionLocs {
 
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
-pub struct LrudStyleOptionLocs {
+pub struct LrudOptionLocs {
     pub option: SourceLoc,
     pub style: Option<SourceLoc>,
+    pub order: Option<SourceLoc>,
 }
 
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
@@ -635,133 +1185,483 @@ pub struct MacroOptionLocs {
 #[schemars(deny_unknown_fields)]
 #[serde(tag = "option")]
 pub enum InvalidUnitsOption {
-    CompassAndTapeOrder {
-        order: Vec<MaybeValidCompassAndTapeItem>,
+    #[schemars(title = "InvalidOrderOption")]
+    Order {
+        order: Option<Vec<MaybeValidOrderItem>>,
         loc: Option<SourceLoc>,
         locs: Option<OrderOptionLocs>,
     },
-    RectilinearOrder {
-        order: Vec<MaybeValidRectilinearItem>,
-        loc: Option<SourceLoc>,
-        locs: Option<OrderOptionLocs>,
-    },
+    #[schemars(title = "InvalidFrontsightAzimuthUnitOption")]
     FrontsightAzimuthUnit {
         unit: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "InvalidBacksightAzimuthUnitOption")]
     BacksightAzimuthUnit {
         unit: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "InvalidPrimaryDistanceUnitOption")]
     PrimaryDistanceUnit {
         unit: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "InvalidSecondaryDistanceUnitOption")]
     SecondaryDistanceUnit {
         unit: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "InvalidFrontsightInclinationUnitOption")]
     FrontsightInclinationUnit {
         unit: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "InvalidBacksightInclinationUnitOption")]
     BacksightInclinationUnit {
         unit: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
+    #[schemars(title = "InvalidMagneticDeclinationOption")]
     MagneticDeclination {
         declination: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<DeclinationOptionLocs>,
     },
+    #[schemars(title = "InvalidGridNorthCorrectionOption")]
     GridNorthCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "InvalidRectilinearNorthCorrectionOption")]
     RectilinearNorthCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    DistanceCorrection {
+    #[schemars(title = "InvalidPrimaryDistanceCorrectionOption")]
+    PrimaryDistanceCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "InvalidSecondaryDistanceCorrectionOption")]
+    SecondaryDistanceCorrection {
+        correction: Option<String>,
+        loc: Option<SourceLoc>,
+        locs: Option<CorrectionOptionLocs>,
+    },
+    #[schemars(title = "InvalidFrontsightAzimuthCorrectionOption")]
     FrontsightAzimuthCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "InvalidBacksightAzimuthCorrectionOption")]
     BacksightAzimuthCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "InvalidFrontsightInclinationCorrectionOption")]
     FrontsightInclinationCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "InvalidBacksightInclinationCorrectionOption")]
     BacksightInclinationCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "InvalidHeightAdjustmentOption")]
     HeightAdjustment {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
+    #[schemars(title = "InvalidBacksightAzimuthType")]
     BacksightAzimuthType(InvalidBacksightOptions),
+    #[schemars(title = "InvalidBacksightInclinationType")]
     BacksightInclinationType(InvalidBacksightOptions),
+    #[schemars(title = "InvalidStationNameCaseOption")]
     StationNameCase {
         conversion: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<StationNameCaseOptionLocs>,
     },
-    LrudStyle {
+    #[schemars(title = "InvalidLrudOption")]
+    Lrud {
+        // TODO: make maybe valid type
         style: Option<String>,
+        // TODO: make maybe valid type
+        order: Option<String>,
         loc: Option<SourceLoc>,
-        locs: Option<LrudStyleOptionLocs>,
+        locs: Option<LrudOptionLocs>,
     },
+    #[schemars(title = "InvalidTapingMethodOption")]
     TapingMethod {
         method: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<TapingMethodOptionLocs>,
     },
+    #[schemars(title = "InvalidUnitVarianceOption")]
     UnitVariance {
         variance: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<VarianceOptionLocs>,
     },
+    #[schemars(title = "InvalidHorizontalUnitVarianceOption")]
     HorizontalUnitVariance {
         variance: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<VarianceOptionLocs>,
     },
+    #[schemars(title = "InvalidVerticalUnitVarianceOption")]
     VerticalUnitVariance {
         variance: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<VarianceOptionLocs>,
     },
+    #[schemars(title = "InvalidMacroOption")]
     Macro {
         name: Option<String>,
         value: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<MacroOptionLocs>,
     },
+    #[schemars(title = "InvalidUnknownOption")]
     Unknown {
-        value: Option<String>,
+        value: String,
         loc: Option<SourceLoc>,
     },
+}
+
+impl InvalidUnitsOption {
+    pub fn order(
+        order: Option<Vec<MaybeValidOrderItem>>,
+        option_loc: SourceLoc,
+        order_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::Order {
+            order,
+            loc: order_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(OrderOptionLocs {
+                option: option_loc,
+                order: order_loc,
+            }),
+        }
+    }
+    pub fn primary_distance_unit(
+        unit: Option<String>,
+        option_loc: SourceLoc,
+        unit_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::PrimaryDistanceUnit {
+            unit,
+            loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(UnitOptionLocs {
+                option: option_loc,
+                unit: unit_loc,
+            }),
+        }
+    }
+    pub fn secondary_distance_unit(
+        unit: Option<String>,
+        option_loc: SourceLoc,
+        unit_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::SecondaryDistanceUnit {
+            unit,
+            loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(UnitOptionLocs {
+                option: option_loc,
+                unit: unit_loc,
+            }),
+        }
+    }
+    pub fn frontsight_azimuth_unit(
+        unit: Option<String>,
+        option_loc: SourceLoc,
+        unit_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::FrontsightAzimuthUnit {
+            unit,
+            loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(UnitOptionLocs {
+                option: option_loc,
+                unit: unit_loc,
+            }),
+        }
+    }
+    pub fn backsight_azimuth_unit(
+        unit: Option<String>,
+        option_loc: SourceLoc,
+        unit_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::FrontsightAzimuthUnit {
+            unit,
+            loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(UnitOptionLocs {
+                option: option_loc,
+                unit: unit_loc,
+            }),
+        }
+    }
+    pub fn frontsight_inclination_unit(
+        unit: Option<String>,
+        option_loc: SourceLoc,
+        unit_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::FrontsightInclinationUnit {
+            unit,
+            loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(UnitOptionLocs {
+                option: option_loc,
+                unit: unit_loc,
+            }),
+        }
+    }
+    pub fn backsight_inclination_unit(
+        unit: Option<String>,
+        option_loc: SourceLoc,
+        unit_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::FrontsightInclinationUnit {
+            unit,
+            loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(UnitOptionLocs {
+                option: option_loc,
+                unit: unit_loc,
+            }),
+        }
+    }
+    pub fn primary_distance_correction(
+        correction: Option<String>,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::PrimaryDistanceCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn secondary_distance_correction(
+        correction: Option<String>,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::SecondaryDistanceCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn height_adjustment(
+        correction: Option<String>,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::HeightAdjustment {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn frontsight_azimuth_correction(
+        correction: Option<String>,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::FrontsightAzimuthCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn backsight_azimuth_correction(
+        correction: Option<String>,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::BacksightAzimuthCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn frontsight_inclination_correction(
+        correction: Option<String>,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::FrontsightInclinationCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn backsight_inclination_correction(
+        correction: Option<String>,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::BacksightInclinationCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn magnetic_declination(
+        declination: Option<String>,
+        option_loc: SourceLoc,
+        declination_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::MagneticDeclination {
+            declination,
+            loc: declination_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(DeclinationOptionLocs {
+                option: option_loc,
+                declination: declination_loc,
+            }),
+        }
+    }
+    pub fn grid_north_correction(
+        correction: Option<String>,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::GridNorthCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn rect_north_correction(
+        correction: Option<String>,
+        option_loc: SourceLoc,
+        correction_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::RectilinearNorthCorrection {
+            correction,
+            loc: correction_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(CorrectionOptionLocs {
+                option: option_loc,
+                correction: correction_loc,
+            }),
+        }
+    }
+    pub fn station_name_case(
+        conversion: Option<String>,
+        option_loc: SourceLoc,
+        conversion_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::StationNameCase {
+            conversion,
+            loc: conversion_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(StationNameCaseOptionLocs {
+                option: option_loc,
+                conversion: conversion_loc,
+            }),
+        }
+    }
+    pub fn taping_method(
+        method: Option<String>,
+        option_loc: SourceLoc,
+        method_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::TapingMethod {
+            method,
+            loc: method_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(TapingMethodOptionLocs {
+                option: option_loc,
+                method: method_loc,
+            }),
+        }
+    }
+    pub fn horizontal_unit_variance(
+        variance: Option<String>,
+        option_loc: SourceLoc,
+        variance_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::HorizontalUnitVariance {
+            variance,
+            loc: variance_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(VarianceOptionLocs {
+                option: option_loc,
+                variance: variance_loc,
+            }),
+        }
+    }
+    pub fn vertical_unit_variance(
+        variance: Option<String>,
+        option_loc: SourceLoc,
+        variance_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::VerticalUnitVariance {
+            variance,
+            loc: variance_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(VarianceOptionLocs {
+                option: option_loc,
+                variance: variance_loc,
+            }),
+        }
+    }
+    pub fn unit_variance(
+        variance: Option<String>,
+        option_loc: SourceLoc,
+        variance_loc: Option<SourceLoc>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::UnitVariance {
+            variance,
+            loc: variance_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
+            locs: Some(VarianceOptionLocs {
+                option: option_loc,
+                variance: variance_loc,
+            }),
+        }
+    }
+    pub fn with_issue(self, issue: usize) -> MaybeValidUnitsOption {
+        self.with_issues(vec![issue])
+    }
+    pub fn with_issues(self, issues: Vec<usize>) -> MaybeValidUnitsOption {
+        MaybeValidUnitsOption::Invalid {
+            invalid: self,
+            issues: Some(issues),
+        }
+    }
 }
 
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
@@ -774,6 +1674,12 @@ pub enum MaybeValidUnitsOption {
         invalid: InvalidUnitsOption,
         issues: Option<Vec<usize>>,
     },
+}
+
+impl From<UnitsOption> for MaybeValidUnitsOption {
+    fn from(option: UnitsOption) -> MaybeValidUnitsOption {
+        MaybeValidUnitsOption::Valid(option)
+    }
 }
 
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
@@ -811,6 +1717,7 @@ pub enum InvalidFixLocation {
 }
 
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[serde(untagged)]
 #[schemars(deny_unknown_fields)]
 pub enum MaybeValidFixLocation {
     Valid(FixLocation),
@@ -825,9 +1732,13 @@ pub enum MaybeValidFixLocation {
 #[serde(tag = "type")]
 #[schemars(deny_unknown_fields)]
 pub enum VarianceAssignment {
+    #[schemars(title = "LengthVarianceAssignment")]
     Length { length: Length },
+    #[schemars(title = "RMSErrorVarianceAssignment")]
     RMSError { length: Length },
+    #[schemars(title = "FloatShotVarianceAssignment")]
     FloatShot,
+    #[schemars(title = "FloatTraverseVarianceAssignment")]
     FloatTraverse,
 }
 
@@ -835,8 +1746,11 @@ pub enum VarianceAssignment {
 #[serde(tag = "type")]
 #[schemars(deny_unknown_fields)]
 pub enum InvalidVarianceAssignment {
+    #[schemars(title = "InvalidLengthVarianceAssignment")]
     Length { length: String },
+    #[schemars(title = "InvalidVarianceAssignment")]
     RMSError { length: String },
+    #[schemars(title = "UnknownVarianceAssignment")]
     Unknown { value: String },
 }
 
@@ -1303,6 +2217,9 @@ pub enum InvalidSrvItem {
 }
 
 impl InvalidSrvItem {
+    pub fn with_issue(self, issue: usize) -> MaybeValidSrvItem {
+        self.with_issues(vec![issue])
+    }
     pub fn with_issues(self, issues: Vec<usize>) -> MaybeValidSrvItem {
         MaybeValidSrvItem::Invalid {
             invalid: self,
@@ -1362,3 +2279,22 @@ impl From<WallsSrvFile> for MaybeValidWallsSrvFile {
 
 pub const EINVALIDDIRECTIVE: &str = "EINVALIDDIRECTIVE";
 pub const EUNEXPECTED: &str = "EUNEXPECTED";
+pub const EINVALIDOPTION: &str = "EINVALIDOPTION";
+pub const EMISSINGVALUE: &str = "EMISSINGVALUE";
+pub const EINVALIDOPTIONVALUE: &str = "EINVALIDOPTIONVALUE";
+pub const EINVALIDMEASUREMENTORDER: &str = "EINVALIDMEASUREMENTORDER";
+pub const EINVALIDORDERITEM: &str = "EINVALIDORDERITEM";
+pub const EINVALIDLENGTH: &str = "EINVALIDLENGTH";
+pub const EINVALIDLENGTHUNIT: &str = "EINVALIDLENGTHUNIT";
+pub const EINVALIDANGLE: &str = "EINVALIDANGLEUNIT";
+pub const EINVALIDANGLEUNIT: &str = "EINVALIDANGLEUNIT";
+pub const EINVALIDAZIMUTH: &str = "EINVALIDAZIMUTH";
+pub const EAZIMUTHOUTOFRANGE: &str = "EAZIMUTHOUTOFRANGE";
+pub const EINVALIDAZIMUTHUNIT: &str = "EINVALIDAZIMUTHUNIT";
+pub const EINVALIDINCLINATION: &str = "EINVALIDINCLINATION";
+pub const EINCLINATIONOUTOFRANGE: &str = "EINCLINATIONOUTOFRANGE";
+pub const EINVALIDINCLINATIONUNIT: &str = "EINVALIDINCLINATIONUNIT";
+pub const EINVALIDCASECONVERSION: &str = "EINVALIDCASECONVERSION";
+pub const EINVALIDTAPINGMETHOD: &str = "EINVALIDTAPINGMETHOD";
+pub const EINVALIDUNITVARIANCE: &str = "EINVALIDUNITVARIANCE";
+pub const EMISSINGINCHES: &str = "EMISSINGINCHES";
