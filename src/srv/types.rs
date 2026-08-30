@@ -1,5 +1,6 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use serde_with::skip_serializing_none;
 
 use crate::types::{ParseIssue, SourceLoc};
@@ -567,13 +568,13 @@ pub enum MaybeValidBacksightOptions {
     },
 }
 
-#[skip_serializing_none]
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
+#[derive(JsonSchema, Serialize_repr, Deserialize_repr, PartialEq, Debug, Copy, Clone)]
+#[repr(u8)]
 #[schemars(deny_unknown_fields)]
 pub enum PrefixLevel {
-    Prefix1,
-    Prefix2,
-    Prefix3,
+    Prefix1 = 1,
+    Prefix2 = 2,
+    Prefix3 = 3,
 }
 
 impl From<PrefixLevel> for usize {

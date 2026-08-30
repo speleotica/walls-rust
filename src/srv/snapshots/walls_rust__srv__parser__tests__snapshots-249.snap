@@ -3,7 +3,7 @@ source: src/srv/parser_test.rs
 expression: "&parse(\"#prefix1\")"
 ---
 items:
-  - level: Prefix1
+  - level: 1
     loc: "#prefix1"
     locs:
       directive: "#prefix1"

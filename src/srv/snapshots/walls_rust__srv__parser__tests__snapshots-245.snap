@@ -4,7 +4,7 @@ expression: "&parse(\"#prefix=\")"
 ---
 INVALID:
   items:
-    - level: Prefix1
+    - level: 1
       loc: "#prefix="
       locs:
         directive: "#prefix"
