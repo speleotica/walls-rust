@@ -1,0 +1,16 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units case=u\")"
+---
+items:
+  - loc: "#units case=u"
+    locs:
+      directive: "#units"
+    options:
+      - conversion: Upper
+        loc: case=u
+        locs:
+          conversion: u
+          option: case
+        option: StationNameCase
+    type: UnitsDirective

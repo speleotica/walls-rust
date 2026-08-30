@@ -1,0 +1,23 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units a\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units a"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              locs:
+                option: a
+              option: FrontsightAzimuthUnit
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGVALUE
+    loc: ""
+    message: Missing =
+    severity: Error

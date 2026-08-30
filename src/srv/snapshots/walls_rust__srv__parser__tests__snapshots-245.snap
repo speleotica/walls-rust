@@ -1,0 +1,18 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#prefix=\")"
+---
+INVALID:
+  items:
+    - level: Prefix1
+      loc: "#prefix="
+      locs:
+        directive: "#prefix"
+        prefix: "="
+      prefix: "="
+      type: PrefixDirective
+issues:
+  - code: EMISSINGWHITESPACE
+    loc: ""
+    message: Missing whitespace
+    severity: Error

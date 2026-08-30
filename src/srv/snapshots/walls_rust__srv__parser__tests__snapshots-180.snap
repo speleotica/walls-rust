@@ -1,0 +1,18 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incvb=-2p\")"
+---
+items:
+  - loc: "#units incvb=-2p"
+    locs:
+      directive: "#units"
+    options:
+      - correction:
+          unit: Percent
+          value: -2
+        loc: incvb=-2p
+        locs:
+          correction: "-2p"
+          option: incvb
+        option: BacksightInclinationCorrection
+    type: UnitsDirective

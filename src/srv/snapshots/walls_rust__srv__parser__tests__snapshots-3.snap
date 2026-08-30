@@ -1,0 +1,19 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units order=adv\")"
+---
+items:
+  - loc: "#units order=adv"
+    locs:
+      directive: "#units"
+    options:
+      - loc: order=adv
+        locs:
+          option: order
+          order: adv
+        option: CompassAndTapeOrder
+        order:
+          - Azimuth
+          - Distance
+          - Inclination
+    type: UnitsDirective

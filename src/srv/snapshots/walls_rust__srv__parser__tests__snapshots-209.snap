@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units case=q\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units case=q"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              conversion: q
+              loc: case=q
+              locs:
+                conversion: q
+                option: case
+              option: StationNameCase
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDCASECONVERSION
+    loc: q
+    message: Invalid case conversion
+    severity: Error

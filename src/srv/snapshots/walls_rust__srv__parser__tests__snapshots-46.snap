@@ -1,0 +1,16 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units a=d\")"
+---
+items:
+  - loc: "#units a=d"
+    locs:
+      directive: "#units"
+    options:
+      - loc: a=d
+        locs:
+          option: a
+          unit: d
+        option: FrontsightAzimuthUnit
+        unit: Degrees
+    type: UnitsDirective

@@ -1,0 +1,19 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units order=eun\")"
+---
+items:
+  - loc: "#units order=eun"
+    locs:
+      directive: "#units"
+    options:
+      - loc: order=eun
+        locs:
+          option: order
+          order: eun
+        option: RectilinearOrder
+        order:
+          - Easting
+          - Elevation
+          - Northing
+    type: UnitsDirective

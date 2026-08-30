@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units a=g decl=2\")"
+---
+items:
+  - loc: "#units a=g decl=2"
+    locs:
+      directive: "#units"
+    options:
+      - loc: a=g
+        locs:
+          option: a
+          unit: g
+        option: FrontsightAzimuthUnit
+        unit: Grads
+      - declination:
+          unit: Degrees
+          value: 2
+        loc: decl=2
+        locs:
+          declination: "2"
+          option: decl
+        option: MagneticDeclination
+    type: UnitsDirective

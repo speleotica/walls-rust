@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units inca=-2q\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units inca=-2q"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              correction: "-2q"
+              loc: inca=-2q
+              locs:
+                correction: "-2q"
+                option: inca
+              option: FrontsightAzimuthCorrection
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDANGLEUNIT
+    loc: q
+    message: Invalid angle unit
+    severity: Error

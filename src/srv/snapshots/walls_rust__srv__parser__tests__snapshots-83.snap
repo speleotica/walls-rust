@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units vb=blargh\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units vb=blargh"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: vb=blargh
+              locs:
+                option: vb
+                unit: blargh
+              option: BacksightInclinationUnit
+              unit: blargh
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDINCLINATIONUNIT
+    loc: blargh
+    message: Invalid inclination unit
+    severity: Error

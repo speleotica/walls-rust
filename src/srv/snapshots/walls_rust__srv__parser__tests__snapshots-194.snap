@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units d=f inch=2m\")"
+---
+items:
+  - loc: "#units d=f inch=2m"
+    locs:
+      directive: "#units"
+    options:
+      - loc: d=f
+        locs:
+          option: d
+          unit: f
+        option: PrimaryDistanceUnit
+        unit: Feet
+      - correction:
+          unit: Meters
+          value: 2
+        loc: inch=2m
+        locs:
+          correction: 2m
+          option: inch
+        option: HeightAdjustment
+    type: UnitsDirective

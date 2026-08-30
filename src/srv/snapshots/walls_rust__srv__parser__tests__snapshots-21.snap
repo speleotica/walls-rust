@@ -1,0 +1,30 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units order=nuqe\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units order=nuqe"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: order=nuqe
+              locs:
+                option: order
+                order: nuqe
+              option: Order
+              order:
+                - Northing
+                - Elevation
+                - INVALID: q
+                  issues:
+                    - 0
+                - Easting
+        type: UnitsDirective
+issues:
+  - code: EINVALIDORDERITEM
+    loc: nu
+    message: Invalid measurement item
+    severity: Error

@@ -1,0 +1,30 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incd=-2q-\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units incd=-2q-"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              correction: "-2q-"
+              loc: incd=-2q
+              locs:
+                correction: "-2q"
+                option: incd
+              option: PrimaryDistanceCorrection
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDLENGTHUNIT
+    loc: q
+    message: Invalid length unit
+    severity: Error
+  - code: EUNEXPECTED
+    loc: "-"
+    message: Unexpected text
+    severity: Error

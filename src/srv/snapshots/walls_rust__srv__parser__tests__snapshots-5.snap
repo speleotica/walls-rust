@@ -1,0 +1,19 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units order=vda\")"
+---
+items:
+  - loc: "#units order=vda"
+    locs:
+      directive: "#units"
+    options:
+      - loc: order=vda
+        locs:
+          option: order
+          order: vda
+        option: CompassAndTapeOrder
+        order:
+          - Inclination
+          - Distance
+          - Azimuth
+    type: UnitsDirective

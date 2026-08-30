@@ -1,0 +1,16 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units vb=p\")"
+---
+items:
+  - loc: "#units vb=p"
+    locs:
+      directive: "#units"
+    options:
+      - loc: vb=p
+        locs:
+          option: vb
+          unit: p
+        option: BacksightInclinationUnit
+        unit: Percent
+    type: UnitsDirective

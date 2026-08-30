@@ -1,0 +1,23 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units tape\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units tape"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              locs:
+                option: tape
+              option: TapingMethod
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGVALUE
+    loc: ""
+    message: Missing =
+    severity: Error

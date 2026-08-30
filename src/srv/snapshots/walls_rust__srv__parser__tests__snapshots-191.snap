@@ -1,0 +1,18 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units inch=-2.3\")"
+---
+items:
+  - loc: "#units inch=-2.3"
+    locs:
+      directive: "#units"
+    options:
+      - correction:
+          unit: Meters
+          value: -2.3
+        loc: inch=-2.3
+        locs:
+          correction: "-2.3"
+          option: inch
+        option: HeightAdjustment
+    type: UnitsDirective

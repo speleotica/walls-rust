@@ -1,0 +1,30 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units order=nuda\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units order=nuda"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: order=nuda
+              locs:
+                option: order
+                order: nuda
+              option: Order
+              order:
+                - Northing
+                - Elevation
+                - Distance
+                - Azimuth
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDMEASUREMENTORDER
+    loc: nuda
+    message: Invalid measurement order
+    severity: Error

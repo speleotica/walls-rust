@@ -1,0 +1,16 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units ab=g\")"
+---
+items:
+  - loc: "#units ab=g"
+    locs:
+      directive: "#units"
+    options:
+      - loc: ab=g
+        locs:
+          option: ab
+          unit: g
+        option: BacksightAzimuthUnit
+        unit: Grads
+    type: UnitsDirective

@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units decl=a2m\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units decl=a2m"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              declination: a2m
+              loc: decl=a2m
+              locs:
+                declination: a2m
+                option: decl
+              option: MagneticDeclination
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDAZIMUTH
+    loc: a2m
+    message: Invalid azimuth
+    severity: Error

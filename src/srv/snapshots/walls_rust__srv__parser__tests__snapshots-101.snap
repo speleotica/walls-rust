@@ -1,0 +1,18 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units grid=+2\")"
+---
+items:
+  - loc: "#units grid=+2"
+    locs:
+      directive: "#units"
+    options:
+      - correction:
+          unit: Degrees
+          value: 2
+        loc: grid=+2
+        locs:
+          correction: "+2"
+          option: grid
+        option: GridNorthCorrection
+    type: UnitsDirective

@@ -1,0 +1,16 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units tape=ss\")"
+---
+items:
+  - loc: "#units tape=ss"
+    locs:
+      directive: "#units"
+    options:
+      - loc: tape=ss
+        locs:
+          method: ss
+          option: tape
+        method: StationToStation
+        option: TapingMethod
+    type: UnitsDirective

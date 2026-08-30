@@ -1,0 +1,22 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units uvh=-1.3a\")"
+---
+INVALID:
+  items:
+    - loc: "#units uvh=-1.3a"
+      locs:
+        directive: "#units"
+      options:
+        - loc: uvh=-1.3
+          locs:
+            option: uvh
+            variance: "-1.3"
+          option: HorizontalUnitVariance
+          variance: -1.3
+      type: UnitsDirective
+issues:
+  - code: EUNEXPECTED
+    loc: a
+    message: Unexpected text
+    severity: Error

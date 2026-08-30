@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units grid=-2m-\")"
+---
+INVALID:
+  items:
+    - loc: "#units grid=-2m-"
+      locs:
+        directive: "#units"
+      options:
+        - correction:
+            unit: Mils
+            value: -2
+          loc: grid=-2m
+          locs:
+            correction: "-2m"
+            option: grid
+          option: GridNorthCorrection
+      type: UnitsDirective
+issues:
+  - code: EUNEXPECTED
+    loc: "-"
+    message: Unexpected text
+    severity: Error

@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units uv=a-1.3\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units uv=a-1.3"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: uv=a-1.3
+              locs:
+                option: uv
+                variance: a-1.3
+              option: UnitVariance
+              variance: a-1.3
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDUNITVARIANCE
+    loc: a-1.3
+    message: Invalid unit variance
+    severity: Error

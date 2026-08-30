@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units decl=-2q\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units decl=-2q"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              declination: "-2q"
+              loc: decl=-2q
+              locs:
+                declination: "-2q"
+                option: decl
+              option: MagneticDeclination
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDAZIMUTHUNIT
+    loc: q
+    message: Invalid azimuth unit
+    severity: Error

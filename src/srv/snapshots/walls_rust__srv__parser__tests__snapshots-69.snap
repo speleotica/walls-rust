@@ -1,0 +1,16 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units v=mils\")"
+---
+items:
+  - loc: "#units v=mils"
+    locs:
+      directive: "#units"
+    options:
+      - loc: v=mils
+        locs:
+          option: v
+          unit: mils
+        option: FrontsightInclinationUnit
+        unit: Mils
+    type: UnitsDirective

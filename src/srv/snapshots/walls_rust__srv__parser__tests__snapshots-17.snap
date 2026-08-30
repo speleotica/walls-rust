@@ -1,0 +1,19 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units order=une\")"
+---
+items:
+  - loc: "#units order=une"
+    locs:
+      directive: "#units"
+    options:
+      - loc: order=une
+        locs:
+          option: order
+          order: une
+        option: RectilinearOrder
+        order:
+          - Elevation
+          - Northing
+          - Easting
+    type: UnitsDirective

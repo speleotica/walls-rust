@@ -1,0 +1,16 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units uvv=0\")"
+---
+items:
+  - loc: "#units uvv=0"
+    locs:
+      directive: "#units"
+    options:
+      - loc: uvv=0
+        locs:
+          option: uvv
+          variance: "0"
+        option: VerticalUnitVariance
+        variance: 0
+    type: UnitsDirective

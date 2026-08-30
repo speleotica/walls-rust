@@ -1,0 +1,17 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#grefix\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#grefix"
+        text: "#grefix"
+        type: Unknown
+      issues:
+        - 0
+issues:
+  - code: EINVALIDDIRECTIVE
+    loc: "#grefix"
+    message: Invalid directive
+    severity: Error

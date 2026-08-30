@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units order\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units order"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: order
+              locs:
+                option: order
+              option: Order
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGVALUE
+    loc: ""
+    message: Missing =
+    severity: Error

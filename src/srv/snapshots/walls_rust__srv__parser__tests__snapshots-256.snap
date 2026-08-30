@@ -1,0 +1,12 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#prefix3 ab!c\")"
+---
+items:
+  - level: Prefix3
+    loc: "#prefix3 ab!c"
+    locs:
+      directive: "#prefix3"
+      prefix: ab!c
+    prefix: ab!c
+    type: PrefixDirective

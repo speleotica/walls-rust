@@ -1,0 +1,28 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units order=nu\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units order=nu"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: order=nu
+              locs:
+                option: order
+                order: nu
+              option: Order
+              order:
+                - Northing
+                - Elevation
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDMEASUREMENTORDER
+    loc: nu
+    message: Invalid measurement order
+    severity: Error

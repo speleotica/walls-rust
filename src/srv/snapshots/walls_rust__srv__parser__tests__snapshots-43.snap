@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units s=g\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units s=g"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: s=g
+              locs:
+                option: s
+                unit: g
+              option: SecondaryDistanceUnit
+              unit: g
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDLENGTHUNIT
+    loc: g
+    message: Invalid length unit
+    severity: Error

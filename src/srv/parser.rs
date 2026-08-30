@@ -8,12 +8,13 @@ use crate::{
         EINVALIDANGLEUNIT, EINVALIDAZIMUTH, EINVALIDAZIMUTHUNIT, EINVALIDCASECONVERSION,
         EINVALIDDIRECTIVE, EINVALIDINCLINATION, EINVALIDINCLINATIONUNIT, EINVALIDLENGTH,
         EINVALIDLENGTHUNIT, EINVALIDMEASUREMENTORDER, EINVALIDOPTION, EINVALIDORDERITEM,
-        EINVALIDTAPINGMETHOD, EINVALIDUNITVARIANCE, EMISSINGINCHES, EMISSINGVALUE, EUNEXPECTED,
-        Inclination, InclinationUnit, InvalidSrvItem, InvalidUnitsOption, InvalidValue,
-        InvalidWallsSrvFile, Length, LengthUnit, MaybeValidOrderItem, MaybeValidSrvItem,
-        MaybeValidUnitsOption, MaybeValidWallsSrvFile, OrderItem, OrderOptionLocs,
-        PrefixDirectiveLocs, PrefixLevel, RectilinearItem, SrvItem, SrvSettings,
-        StationNameCaseConversion, TapingMethod, UnitsDirectiveLocs, UnitsOption, WallsSrvFile,
+        EINVALIDTAPINGMETHOD, EINVALIDUNITVARIANCE, EMISSINGINCHES, EMISSINGVALUE,
+        EMISSINGWHITESPACE, EUNEXPECTED, Inclination, InclinationUnit, InvalidSrvItem,
+        InvalidUnitsOption, InvalidValue, InvalidWallsSrvFile, Length, LengthUnit,
+        MaybeValidOrderItem, MaybeValidSrvItem, MaybeValidUnitsOption, MaybeValidWallsSrvFile,
+        OrderItem, OrderOptionLocs, PrefixDirectiveLocs, PrefixLevel, RectilinearItem, SrvItem,
+        SrvSettings, StationNameCaseConversion, TapingMethod, UnitsDirectiveLocs, UnitsOption,
+        WallsSrvFile,
     },
     types::{ParseIssue, ParseMatch, ParseState, SourceLoc, SourcePos},
 };
@@ -412,10 +413,21 @@ impl<'i> WallsSrvParser<'i> {
                 let result = parse_value(&mut parser)
                     .map_or_else(
                         |e| {
-                            invalid(Some(value.as_str().into()), option.loc(), Some(value.loc()))
-                                .with_issue(self.push_issue(e))
+                            invalid(
+                                Some(value.as_str().into()),
+                                option.loc(),
+                                Some(value.loc().start.up_to(parser.pos())),
+                            )
+                            .with_issue(self.push_issue(e))
                         },
-                        |parsed| valid(parsed, option.loc(), Some(value.loc())).into(),
+                        |parsed| {
+                            valid(
+                                parsed,
+                                option.loc(),
+                                Some(value.loc().start.up_to(parser.pos())),
+                            )
+                            .into()
+                        },
                     )
                     .into();
                 self.expect_done(&mut parser);
@@ -615,8 +627,8 @@ impl<'i> WallsSrvParser<'i> {
             |p| match signed_length(p, default_unit) {
                 Ok(Some((length, _))) => Ok(length),
                 Ok(None) => Err(ParseIssue::error(
-                    EMISSINGVALUE,
-                    Some("Missing length".into()),
+                    EINVALIDLENGTH,
+                    Some("Invalid length".into()),
                     Some(p.rest().loc()),
                 )),
                 Err(e) => Err(e.into()),
@@ -638,8 +650,8 @@ impl<'i> WallsSrvParser<'i> {
             |p| match signed_angle(p, default_unit) {
                 Ok(Some((angle, _))) => Ok(angle),
                 Ok(None) => Err(ParseIssue::error(
-                    EMISSINGVALUE,
-                    Some("Missing angle".into()),
+                    EINVALIDANGLE,
+                    Some("Invalid angle".into()),
                     Some(p.rest().loc()),
                 )),
                 Err(e) => Err(e.into()),
@@ -661,8 +673,8 @@ impl<'i> WallsSrvParser<'i> {
             |p| match signed_azimuth(p, default_unit) {
                 Ok(Some((azimuth, _))) => Ok(azimuth),
                 Ok(None) => Err(ParseIssue::error(
-                    EMISSINGVALUE,
-                    Some("Missing azimuth".into()),
+                    EINVALIDAZIMUTH,
+                    Some("Invalid azimuth".into()),
                     Some(p.rest().loc()),
                 )),
                 Err(e) => Err(e.into()),
@@ -684,8 +696,8 @@ impl<'i> WallsSrvParser<'i> {
             |p| match signed_inclination(p, default_unit) {
                 Ok(Some((inclination, _))) => Ok(inclination),
                 Ok(None) => Err(ParseIssue::error(
-                    EMISSINGVALUE,
-                    Some("Missing inclination".into()),
+                    EINVALIDINCLINATION,
+                    Some("Invalid inclination".into()),
                     Some(p.rest().loc()),
                 )),
                 Err(e) => Err(e.into()),
@@ -758,12 +770,7 @@ impl<'i> WallsSrvParser<'i> {
             "unit variance",
             |p| match signed_number(p) {
                 Some(Ok(variance)) => Ok(variance),
-                None => Err(ParseIssue::error(
-                    EMISSINGVALUE,
-                    Some("Missing unit variance".into()),
-                    Some(p.rest().loc()),
-                )),
-                Some(Err(_)) => Err(ParseIssue::error(
+                None | Some(Err(_)) => Err(ParseIssue::error(
                     EINVALIDUNITVARIANCE,
                     Some("Invalid unit variance".into()),
                     Some(p.rest().loc()),
@@ -784,7 +791,13 @@ impl<'i> WallsSrvParser<'i> {
             comment: None,
         };
 
-        self.skip_whitespace();
+        if !self.skip_whitespace() && !self.line.is_done() {
+            self.push_error(
+                EMISSINGWHITESPACE,
+                Some("Missing whitespace".into()),
+                Some(self.pos().into()),
+            );
+        }
         let prefix = self.find(&NAME).and_then(|m| {
             locs.prefix = Some(m.loc());
             Some(m.as_str().into())

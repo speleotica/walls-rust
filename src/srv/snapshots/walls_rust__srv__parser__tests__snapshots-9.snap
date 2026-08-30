@@ -1,0 +1,30 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units order=ddav\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units order=ddav"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: order=ddav
+              locs:
+                option: order
+                order: ddav
+              option: Order
+              order:
+                - Distance
+                - Distance
+                - Azimuth
+                - Inclination
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDMEASUREMENTORDER
+    loc: ddav
+    message: Invalid measurement order
+    severity: Error

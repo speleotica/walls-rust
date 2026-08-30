@@ -1,0 +1,23 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units uv\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units uv"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              locs:
+                option: uv
+              option: UnitVariance
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGVALUE
+    loc: ""
+    message: Missing =
+    severity: Error

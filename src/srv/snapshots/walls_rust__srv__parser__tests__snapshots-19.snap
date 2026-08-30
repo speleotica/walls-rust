@@ -1,0 +1,18 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units order=ne\")"
+---
+items:
+  - loc: "#units order=ne"
+    locs:
+      directive: "#units"
+    options:
+      - loc: order=ne
+        locs:
+          option: order
+          order: ne
+        option: RectilinearOrder
+        order:
+          - Northing
+          - Easting
+    type: UnitsDirective

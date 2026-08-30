@@ -1,0 +1,23 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units uvh=\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units uvh="
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              locs:
+                option: uvh
+              option: HorizontalUnitVariance
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGVALUE
+    loc: ""
+    message: Missing unit variance
+    severity: Error

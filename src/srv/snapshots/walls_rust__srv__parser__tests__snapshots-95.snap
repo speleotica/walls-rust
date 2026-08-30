@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units decl=-2m-\")"
+---
+INVALID:
+  items:
+    - loc: "#units decl=-2m-"
+      locs:
+        directive: "#units"
+      options:
+        - declination:
+            unit: Mils
+            value: -2
+          loc: decl=-2m
+          locs:
+            declination: "-2m"
+            option: decl
+          option: MagneticDeclination
+      type: UnitsDirective
+issues:
+  - code: EUNEXPECTED
+    loc: "-"
+    message: Unexpected text
+    severity: Error

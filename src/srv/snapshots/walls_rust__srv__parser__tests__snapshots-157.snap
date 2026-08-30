@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incab=-2m-\")"
+---
+INVALID:
+  items:
+    - loc: "#units incab=-2m-"
+      locs:
+        directive: "#units"
+      options:
+        - correction:
+            unit: Mils
+            value: -2
+          loc: incab=-2m
+          locs:
+            correction: "-2m"
+            option: incab
+          option: BacksightAzimuthCorrection
+      type: UnitsDirective
+issues:
+  - code: EUNEXPECTED
+    loc: "-"
+    message: Unexpected text
+    severity: Error

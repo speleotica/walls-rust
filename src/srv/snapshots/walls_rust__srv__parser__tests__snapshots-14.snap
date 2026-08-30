@@ -1,0 +1,19 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units order=neu\")"
+---
+items:
+  - loc: "#units order=neu"
+    locs:
+      directive: "#units"
+    options:
+      - loc: order=neu
+        locs:
+          option: order
+          order: neu
+        option: RectilinearOrder
+        order:
+          - Northing
+          - Easting
+          - Elevation
+    type: UnitsDirective

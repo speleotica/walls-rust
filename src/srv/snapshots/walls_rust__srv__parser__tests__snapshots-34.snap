@@ -1,0 +1,16 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units d=f\")"
+---
+items:
+  - loc: "#units d=f"
+    locs:
+      directive: "#units"
+    options:
+      - loc: d=f
+        locs:
+          option: d
+          unit: f
+        option: PrimaryDistanceUnit
+        unit: Feet
+    type: UnitsDirective

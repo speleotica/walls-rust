@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incd=-2f-\")"
+---
+INVALID:
+  items:
+    - loc: "#units incd=-2f-"
+      locs:
+        directive: "#units"
+      options:
+        - correction:
+            unit: Feet
+            value: -2
+          loc: incd=-2f
+          locs:
+            correction: "-2f"
+            option: incd
+          option: PrimaryDistanceCorrection
+      type: UnitsDirective
+issues:
+  - code: EUNEXPECTED
+    loc: "-"
+    message: Unexpected text
+    severity: Error

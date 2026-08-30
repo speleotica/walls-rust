@@ -1,0 +1,23 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units ab=\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units ab="
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              locs:
+                option: ab
+              option: BacksightAzimuthUnit
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGVALUE
+    loc: ""
+    message: Missing azimuth unit
+    severity: Error

@@ -1,0 +1,16 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units vb=grads\")"
+---
+items:
+  - loc: "#units vb=grads"
+    locs:
+      directive: "#units"
+    options:
+      - loc: vb=grads
+        locs:
+          option: vb
+          unit: grads
+        option: BacksightInclinationUnit
+        unit: Grads
+    type: UnitsDirective

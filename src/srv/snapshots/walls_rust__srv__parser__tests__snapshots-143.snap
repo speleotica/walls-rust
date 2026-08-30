@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units a=g inca=2m\")"
+---
+items:
+  - loc: "#units a=g inca=2m"
+    locs:
+      directive: "#units"
+    options:
+      - loc: a=g
+        locs:
+          option: a
+          unit: g
+        option: FrontsightAzimuthUnit
+        unit: Grads
+      - correction:
+          unit: Mils
+          value: 2
+        loc: inca=2m
+        locs:
+          correction: 2m
+          option: inca
+        option: FrontsightAzimuthCorrection
+    type: UnitsDirective

@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units tape=itt\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units tape=itt"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: tape=itt
+              locs:
+                method: itt
+                option: tape
+              method: itt
+              option: TapingMethod
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDTAPINGMETHOD
+    loc: itt
+    message: Invalid taping method
+    severity: Error

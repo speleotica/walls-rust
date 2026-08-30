@@ -1,0 +1,16 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units uv=1.2\")"
+---
+items:
+  - loc: "#units uv=1.2"
+    locs:
+      directive: "#units"
+    options:
+      - loc: uv=1.2
+        locs:
+          option: uv
+          variance: "1.2"
+        option: UnitVariance
+        variance: 1.2
+    type: UnitsDirective

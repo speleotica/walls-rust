@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units inca=-2m-\")"
+---
+INVALID:
+  items:
+    - loc: "#units inca=-2m-"
+      locs:
+        directive: "#units"
+      options:
+        - correction:
+            unit: Mils
+            value: -2
+          loc: inca=-2m
+          locs:
+            correction: "-2m"
+            option: inca
+          option: FrontsightAzimuthCorrection
+      type: UnitsDirective
+issues:
+  - code: EUNEXPECTED
+    loc: "-"
+    message: Unexpected text
+    severity: Error

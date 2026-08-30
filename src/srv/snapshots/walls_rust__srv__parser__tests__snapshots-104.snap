@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units grid=-2q\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units grid=-2q"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              correction: "-2q"
+              loc: grid=-2q
+              locs:
+                correction: "-2q"
+                option: grid
+              option: GridNorthCorrection
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDAZIMUTHUNIT
+    loc: q
+    message: Invalid azimuth unit
+    severity: Error

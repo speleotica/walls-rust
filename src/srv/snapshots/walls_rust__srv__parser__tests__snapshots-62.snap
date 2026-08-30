@@ -1,0 +1,23 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units v\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units v"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              locs:
+                option: v
+              option: FrontsightInclinationUnit
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGVALUE
+    loc: ""
+    message: Missing =
+    severity: Error

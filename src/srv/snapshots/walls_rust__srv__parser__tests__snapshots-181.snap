@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units vb=g incvb=2\")"
+---
+items:
+  - loc: "#units vb=g incvb=2"
+    locs:
+      directive: "#units"
+    options:
+      - loc: vb=g
+        locs:
+          option: vb
+          unit: g
+        option: BacksightInclinationUnit
+        unit: Grads
+      - correction:
+          unit: Grads
+          value: 2
+        loc: incvb=2
+        locs:
+          correction: "2"
+          option: incvb
+        option: BacksightInclinationCorrection
+    type: UnitsDirective

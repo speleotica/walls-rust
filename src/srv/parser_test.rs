@@ -70,6 +70,226 @@ fn test_snapshots() {
     assert_yaml_snapshot!(&parse("#units ab=m"));
     assert_yaml_snapshot!(&parse("#units ab=mils"));
     assert_yaml_snapshot!(&parse("#units ab=blargh"));
+
+    assert_yaml_snapshot!(&parse("#units v"));
+    assert_yaml_snapshot!(&parse("#units v="));
+    assert_yaml_snapshot!(&parse("#units v=d"));
+    assert_yaml_snapshot!(&parse("#units v=degrees"));
+    assert_yaml_snapshot!(&parse("#units v=g"));
+    assert_yaml_snapshot!(&parse("#units v=grads"));
+    assert_yaml_snapshot!(&parse("#units v=m"));
+    assert_yaml_snapshot!(&parse("#units v=mils"));
+    assert_yaml_snapshot!(&parse("#units v=p"));
+    assert_yaml_snapshot!(&parse("#units v=percent"));
+    assert_yaml_snapshot!(&parse("#units v=blargh"));
+
+    assert_yaml_snapshot!(&parse("#units vb"));
+    assert_yaml_snapshot!(&parse("#units vb="));
+    assert_yaml_snapshot!(&parse("#units vb=d"));
+    assert_yaml_snapshot!(&parse("#units vb=degrees"));
+    assert_yaml_snapshot!(&parse("#units vb=g"));
+    assert_yaml_snapshot!(&parse("#units vb=grads"));
+    assert_yaml_snapshot!(&parse("#units vb=m"));
+    assert_yaml_snapshot!(&parse("#units vb=mils"));
+    assert_yaml_snapshot!(&parse("#units vb=p"));
+    assert_yaml_snapshot!(&parse("#units vb=percent"));
+    assert_yaml_snapshot!(&parse("#units vb=blargh"));
+
+    assert_yaml_snapshot!(&parse("#units decl"));
+    assert_yaml_snapshot!(&parse("#units decl="));
+    assert_yaml_snapshot!(&parse("#units decl=2"));
+    assert_yaml_snapshot!(&parse("#units decl=+2"));
+    assert_yaml_snapshot!(&parse("#units decl=-2"));
+    assert_yaml_snapshot!(&parse("#units decl=-2.3"));
+    assert_yaml_snapshot!(&parse("#units decl=-2q"));
+    assert_yaml_snapshot!(&parse("#units a=g decl=2"));
+    assert_yaml_snapshot!(&parse("#units a=g decl=2m"));
+    assert_yaml_snapshot!(&parse("#units a=g decl=2m"));
+    assert_yaml_snapshot!(&parse("#units decl=-2q-"));
+    assert_yaml_snapshot!(&parse("#units decl=-2m-"));
+    assert_yaml_snapshot!(&parse("#units decl=a2m"));
+    assert_yaml_snapshot!(&parse("#units decl=--2m"));
+    // TODO: dms options
+
+    assert_yaml_snapshot!(&parse("#units grid"));
+    assert_yaml_snapshot!(&parse("#units grid="));
+    assert_yaml_snapshot!(&parse("#units grid=2"));
+    assert_yaml_snapshot!(&parse("#units grid=+2"));
+    assert_yaml_snapshot!(&parse("#units grid=-2"));
+    assert_yaml_snapshot!(&parse("#units grid=-2.3"));
+    assert_yaml_snapshot!(&parse("#units grid=-2q"));
+    assert_yaml_snapshot!(&parse("#units a=g grid=2"));
+    assert_yaml_snapshot!(&parse("#units a=g grid=2m"));
+    assert_yaml_snapshot!(&parse("#units a=g grid=2m"));
+    assert_yaml_snapshot!(&parse("#units grid=-2q-"));
+    assert_yaml_snapshot!(&parse("#units grid=-2m-"));
+    // TODO: dms options
+
+    assert_yaml_snapshot!(&parse("#units incd"));
+    assert_yaml_snapshot!(&parse("#units incd="));
+    assert_yaml_snapshot!(&parse("#units incd=2"));
+    assert_yaml_snapshot!(&parse("#units incd=+2"));
+    assert_yaml_snapshot!(&parse("#units incd=-2"));
+    assert_yaml_snapshot!(&parse("#units incd=-2.3"));
+    assert_yaml_snapshot!(&parse("#units incd=-2q"));
+    assert_yaml_snapshot!(&parse("#units d=f incd=2"));
+    assert_yaml_snapshot!(&parse("#units d=f incd=2m"));
+    assert_yaml_snapshot!(&parse("#units s=f incd=2m"));
+    assert_yaml_snapshot!(&parse("#units incd=-2q-"));
+    assert_yaml_snapshot!(&parse("#units incd=-2f-"));
+
+    assert_yaml_snapshot!(&parse("#units incs"));
+    assert_yaml_snapshot!(&parse("#units incs="));
+    assert_yaml_snapshot!(&parse("#units incs=2"));
+    assert_yaml_snapshot!(&parse("#units incs=+2"));
+    assert_yaml_snapshot!(&parse("#units incs=-2"));
+    assert_yaml_snapshot!(&parse("#units incs=-2.3"));
+    assert_yaml_snapshot!(&parse("#units incs=-2q"));
+    assert_yaml_snapshot!(&parse("#units d=f incs=2"));
+    assert_yaml_snapshot!(&parse("#units d=f incs=2m"));
+    assert_yaml_snapshot!(&parse("#units s=f incs=2m"));
+    assert_yaml_snapshot!(&parse("#units incs=-2q-"));
+    assert_yaml_snapshot!(&parse("#units incs=-2f-"));
+
+    assert_yaml_snapshot!(&parse("#units inca"));
+    assert_yaml_snapshot!(&parse("#units inca="));
+    assert_yaml_snapshot!(&parse("#units inca=2"));
+    assert_yaml_snapshot!(&parse("#units inca=+2"));
+    assert_yaml_snapshot!(&parse("#units inca=-2"));
+    assert_yaml_snapshot!(&parse("#units inca=-2.3"));
+    assert_yaml_snapshot!(&parse("#units inca=-2q"));
+    assert_yaml_snapshot!(&parse("#units a=g inca=2"));
+    assert_yaml_snapshot!(&parse("#units a=g inca=2m"));
+    assert_yaml_snapshot!(&parse("#units a=g inca=2m"));
+    assert_yaml_snapshot!(&parse("#units inca=-2q-"));
+    assert_yaml_snapshot!(&parse("#units inca=-2m-"));
+    // TODO: dms options
+
+    assert_yaml_snapshot!(&parse("#units incab"));
+    assert_yaml_snapshot!(&parse("#units incab="));
+    assert_yaml_snapshot!(&parse("#units incab=2"));
+    assert_yaml_snapshot!(&parse("#units incab=+2"));
+    assert_yaml_snapshot!(&parse("#units incab=-2"));
+    assert_yaml_snapshot!(&parse("#units incab=-2.3"));
+    assert_yaml_snapshot!(&parse("#units incab=-2q"));
+    assert_yaml_snapshot!(&parse("#units ab=g incab=2"));
+    assert_yaml_snapshot!(&parse("#units ab=g incab=2m"));
+    assert_yaml_snapshot!(&parse("#units ab=g incab=2m"));
+    assert_yaml_snapshot!(&parse("#units incab=-2q-"));
+    assert_yaml_snapshot!(&parse("#units incab=-2m-"));
+    // TODO: dms options
+
+    assert_yaml_snapshot!(&parse("#units incv"));
+    assert_yaml_snapshot!(&parse("#units incv="));
+    assert_yaml_snapshot!(&parse("#units incv=2"));
+    assert_yaml_snapshot!(&parse("#units incv=+2"));
+    assert_yaml_snapshot!(&parse("#units incv=-2"));
+    assert_yaml_snapshot!(&parse("#units incv=-2.3"));
+    assert_yaml_snapshot!(&parse("#units incv=-2q"));
+    assert_yaml_snapshot!(&parse("#units incv=-2g"));
+    assert_yaml_snapshot!(&parse("#units incv=-2p"));
+    assert_yaml_snapshot!(&parse("#units v=g incv=2"));
+    assert_yaml_snapshot!(&parse("#units v=g incv=2m"));
+    assert_yaml_snapshot!(&parse("#units v=g incv=2m"));
+    assert_yaml_snapshot!(&parse("#units incv=-2q-"));
+    assert_yaml_snapshot!(&parse("#units incv=-2m-"));
+    // TODO: dms options
+
+    assert_yaml_snapshot!(&parse("#units incvb"));
+    assert_yaml_snapshot!(&parse("#units incvb="));
+    assert_yaml_snapshot!(&parse("#units incvb=2"));
+    assert_yaml_snapshot!(&parse("#units incvb=+2"));
+    assert_yaml_snapshot!(&parse("#units incvb=-2"));
+    assert_yaml_snapshot!(&parse("#units incvb=-2.3"));
+    assert_yaml_snapshot!(&parse("#units incvb=-2q"));
+    assert_yaml_snapshot!(&parse("#units incvb=-2g"));
+    assert_yaml_snapshot!(&parse("#units incvb=-2p"));
+    assert_yaml_snapshot!(&parse("#units vb=g incvb=2"));
+    assert_yaml_snapshot!(&parse("#units vb=g incvb=2m"));
+    assert_yaml_snapshot!(&parse("#units vb=g incvb=2m"));
+    assert_yaml_snapshot!(&parse("#units incvb=-2q-"));
+    assert_yaml_snapshot!(&parse("#units incvb=-2m-"));
+    // TODO: dms options
+
+    assert_yaml_snapshot!(&parse("#units inch"));
+    assert_yaml_snapshot!(&parse("#units inch="));
+    assert_yaml_snapshot!(&parse("#units inch=2"));
+    assert_yaml_snapshot!(&parse("#units inch=+2"));
+    assert_yaml_snapshot!(&parse("#units inch=-2"));
+    assert_yaml_snapshot!(&parse("#units inch=-2.3"));
+    assert_yaml_snapshot!(&parse("#units inch=-2q"));
+    assert_yaml_snapshot!(&parse("#units d=f inch=2"));
+    assert_yaml_snapshot!(&parse("#units d=f inch=2m"));
+    assert_yaml_snapshot!(&parse("#units s=f inch=2m"));
+    assert_yaml_snapshot!(&parse("#units inch=-2q-"));
+    assert_yaml_snapshot!(&parse("#units inch=-2f-"));
+
+    assert_yaml_snapshot!(&parse("#units case"));
+    assert_yaml_snapshot!(&parse("#units case="));
+    assert_yaml_snapshot!(&parse("#units case=l"));
+    assert_yaml_snapshot!(&parse("#units case=L"));
+    assert_yaml_snapshot!(&parse("#units case=lower"));
+    assert_yaml_snapshot!(&parse("#units case=u"));
+    assert_yaml_snapshot!(&parse("#units case=U"));
+    assert_yaml_snapshot!(&parse("#units case=upper"));
+    assert_yaml_snapshot!(&parse("#units case=m"));
+    assert_yaml_snapshot!(&parse("#units case=M"));
+    assert_yaml_snapshot!(&parse("#units case=Mixed"));
+    assert_yaml_snapshot!(&parse("#units case=q"));
+
+    assert_yaml_snapshot!(&parse("#units tape"));
+    assert_yaml_snapshot!(&parse("#units tape="));
+    assert_yaml_snapshot!(&parse("#units tape=it"));
+    assert_yaml_snapshot!(&parse("#units tape=ss"));
+    assert_yaml_snapshot!(&parse("#units tape=is"));
+    assert_yaml_snapshot!(&parse("#units tape=st"));
+    assert_yaml_snapshot!(&parse("#units tape=sq"));
+    assert_yaml_snapshot!(&parse("#units tape=itt"));
+
+    assert_yaml_snapshot!(&parse("#units uvh"));
+    assert_yaml_snapshot!(&parse("#units uvh="));
+    assert_yaml_snapshot!(&parse("#units uvh=0"));
+    assert_yaml_snapshot!(&parse("#units uvh=0.0"));
+    assert_yaml_snapshot!(&parse("#units uvh=.0"));
+    assert_yaml_snapshot!(&parse("#units uvh=1.2"));
+    assert_yaml_snapshot!(&parse("#units uvh=-1.3"));
+    assert_yaml_snapshot!(&parse("#units uvh=-1.3a"));
+
+    assert_yaml_snapshot!(&parse("#units uvv"));
+    assert_yaml_snapshot!(&parse("#units uvv="));
+    assert_yaml_snapshot!(&parse("#units uvv=0"));
+    assert_yaml_snapshot!(&parse("#units uvv=0.0"));
+    assert_yaml_snapshot!(&parse("#units uvv=.0"));
+    assert_yaml_snapshot!(&parse("#units uvv=1.2"));
+    assert_yaml_snapshot!(&parse("#units uvv=-1.3"));
+    assert_yaml_snapshot!(&parse("#units uvv=-1.3a"));
+
+    assert_yaml_snapshot!(&parse("#units uv"));
+    assert_yaml_snapshot!(&parse("#units uv="));
+    assert_yaml_snapshot!(&parse("#units uv=0"));
+    assert_yaml_snapshot!(&parse("#units uv=0.0"));
+    assert_yaml_snapshot!(&parse("#units uv=.0"));
+    assert_yaml_snapshot!(&parse("#units uv=1.2"));
+    assert_yaml_snapshot!(&parse("#units uv=-1.3"));
+    assert_yaml_snapshot!(&parse("#units uv=-1.3a"));
+    assert_yaml_snapshot!(&parse("#units uv=a-1.3"));
+    assert_yaml_snapshot!(&parse("#units uv=--1.3"));
+
+    assert_yaml_snapshot!(&parse("#prefix"));
+    assert_yaml_snapshot!(&parse("#prefix="));
+    assert_yaml_snapshot!(&parse("#prefix a"));
+    assert_yaml_snapshot!(&parse("#prefix\ta"));
+    assert_yaml_snapshot!(&parse("#prefix ab!c"));
+    assert_yaml_snapshot!(&parse("#prefix1"));
+    assert_yaml_snapshot!(&parse("#prefix1 "));
+    assert_yaml_snapshot!(&parse("#prefix1 a"));
+    assert_yaml_snapshot!(&parse("#prefix1 ab!c"));
+    assert_yaml_snapshot!(&parse("#prefix2"));
+    assert_yaml_snapshot!(&parse("#prefix2 ab!c"));
+    assert_yaml_snapshot!(&parse("#prefix3"));
+    assert_yaml_snapshot!(&parse("#prefix3 ab!c"));
+
+    assert_yaml_snapshot!(&parse("#grefix"));
 }
 
 fn parse(input: &str) -> Value {
