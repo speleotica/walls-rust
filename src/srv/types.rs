@@ -1,8 +1,10 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::types::{ParseIssue, SourceLoc};
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct InvalidValue {
@@ -11,6 +13,7 @@ pub struct InvalidValue {
     pub issues: Option<Vec<usize>>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum ShotType {
@@ -18,6 +21,7 @@ pub enum ShotType {
     Rectilinear,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum LengthUnit {
@@ -26,6 +30,7 @@ pub enum LengthUnit {
     Inches,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct Length {
@@ -54,6 +59,7 @@ impl Length {
     }
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]
@@ -62,6 +68,7 @@ pub enum MaybeValidLength {
     Invalid(InvalidValue),
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum AngleUnit {
@@ -70,6 +77,7 @@ pub enum AngleUnit {
     Grads,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct Angle {
@@ -98,6 +106,7 @@ impl Angle {
     }
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]
@@ -106,6 +115,7 @@ pub enum MaybeValidAngle {
     Invalid(InvalidValue),
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum InclinationUnit {
@@ -115,6 +125,7 @@ pub enum InclinationUnit {
     Percent,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct Inclination {
@@ -149,6 +160,7 @@ impl Inclination {
     }
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]
@@ -157,6 +169,7 @@ pub enum MaybeValidInclination {
     Invalid(InvalidValue),
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum StationNameCaseConversion {
@@ -165,6 +178,7 @@ pub enum StationNameCaseConversion {
     Mixed,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum CompassAndTapeItem {
@@ -173,6 +187,7 @@ pub enum CompassAndTapeItem {
     Inclination,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum RectilinearItem {
@@ -181,6 +196,7 @@ pub enum RectilinearItem {
     Elevation,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum OrderItem {
@@ -192,6 +208,7 @@ pub enum OrderItem {
     Elevation,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]
@@ -206,6 +223,7 @@ impl From<OrderItem> for MaybeValidOrderItem {
     }
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum LrudStyle {
@@ -215,6 +233,7 @@ pub enum LrudStyle {
     ToStationBisector,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum LrudItem {
@@ -224,6 +243,7 @@ pub enum LrudItem {
     Down,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]
@@ -232,6 +252,7 @@ pub enum MaybeValidLrudItem {
     Invalid(InvalidValue),
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum TapingMethod {
@@ -241,6 +262,7 @@ pub enum TapingMethod {
     StationToTarget,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct SrvSettings {
@@ -493,6 +515,7 @@ impl SrvSettings {
     }
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct BacksightOptions {
@@ -513,6 +536,7 @@ impl BacksightOptions {
     }
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct BacksightOptionsLocs {
@@ -521,6 +545,7 @@ pub struct BacksightOptionsLocs {
     pub do_not_average: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct InvalidBacksightOptions {
@@ -530,6 +555,7 @@ pub struct InvalidBacksightOptions {
     pub locs: Option<BacksightOptionsLocs>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub enum MaybeValidBacksightOptions {
@@ -541,6 +567,7 @@ pub enum MaybeValidBacksightOptions {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum PrefixLevel {
@@ -570,6 +597,7 @@ impl From<usize> for PrefixLevel {
     }
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[serde(tag = "option")]
 #[schemars(deny_unknown_fields)]
@@ -839,7 +867,7 @@ impl UnitsOption {
         option_loc: SourceLoc,
         unit_loc: Option<SourceLoc>,
     ) -> UnitsOption {
-        UnitsOption::FrontsightAzimuthUnit {
+        UnitsOption::BacksightAzimuthUnit {
             unit,
             loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
             locs: Some(UnitOptionLocs {
@@ -1102,6 +1130,7 @@ impl UnitsOption {
     }
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct OrderOptionLocs {
@@ -1109,6 +1138,7 @@ pub struct OrderOptionLocs {
     pub order: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct UnitOptionLocs {
@@ -1116,6 +1146,7 @@ pub struct UnitOptionLocs {
     pub unit: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct CorrectionOptionLocs {
@@ -1123,6 +1154,7 @@ pub struct CorrectionOptionLocs {
     pub correction: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct DeclinationOptionLocs {
@@ -1130,6 +1162,7 @@ pub struct DeclinationOptionLocs {
     pub declination: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct StationNameCaseOptionLocs {
@@ -1137,6 +1170,7 @@ pub struct StationNameCaseOptionLocs {
     pub conversion: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct LrudOptionLocs {
@@ -1145,6 +1179,7 @@ pub struct LrudOptionLocs {
     pub order: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct PrefixOptionLocs {
@@ -1152,6 +1187,7 @@ pub struct PrefixOptionLocs {
     pub prefix: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct TapingMethodOptionLocs {
@@ -1159,6 +1195,7 @@ pub struct TapingMethodOptionLocs {
     pub method: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct VarianceOptionLocs {
@@ -1166,6 +1203,7 @@ pub struct VarianceOptionLocs {
     pub variance: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct FlagOptionLocs {
@@ -1173,6 +1211,7 @@ pub struct FlagOptionLocs {
     pub flag: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct MacroOptionLocs {
@@ -1181,6 +1220,7 @@ pub struct MacroOptionLocs {
     pub value: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(tag = "option")]
@@ -1406,7 +1446,7 @@ impl InvalidUnitsOption {
         option_loc: SourceLoc,
         unit_loc: Option<SourceLoc>,
     ) -> InvalidUnitsOption {
-        InvalidUnitsOption::FrontsightAzimuthUnit {
+        InvalidUnitsOption::BacksightAzimuthUnit {
             unit,
             loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
             locs: Some(UnitOptionLocs {
@@ -1434,7 +1474,7 @@ impl InvalidUnitsOption {
         option_loc: SourceLoc,
         unit_loc: Option<SourceLoc>,
     ) -> InvalidUnitsOption {
-        InvalidUnitsOption::FrontsightInclinationUnit {
+        InvalidUnitsOption::BacksightInclinationUnit {
             unit,
             loc: unit_loc.and_then(|u| Some(option_loc.start.up_to(u.end))),
             locs: Some(UnitOptionLocs {
@@ -1664,6 +1704,7 @@ impl InvalidUnitsOption {
     }
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 #[schemars(deny_unknown_fields)]
@@ -1682,6 +1723,7 @@ impl From<UnitsOption> for MaybeValidUnitsOption {
     }
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub enum FixLocation {
@@ -1699,6 +1741,7 @@ pub enum FixLocation {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub enum InvalidFixLocation {
@@ -1716,6 +1759,7 @@ pub enum InvalidFixLocation {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 #[schemars(deny_unknown_fields)]
@@ -1728,6 +1772,7 @@ pub enum MaybeValidFixLocation {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[serde(tag = "type")]
 #[schemars(deny_unknown_fields)]
@@ -1742,6 +1787,7 @@ pub enum VarianceAssignment {
     FloatTraverse,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[serde(tag = "type")]
 #[schemars(deny_unknown_fields)]
@@ -1754,6 +1800,7 @@ pub enum InvalidVarianceAssignment {
     Unknown { value: String },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 #[schemars(deny_unknown_fields)]
@@ -1766,6 +1813,7 @@ pub enum MaybeValidVarianceAssignment {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub enum SymbolOpacity {
@@ -1775,6 +1823,7 @@ pub enum SymbolOpacity {
     Transparent,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]
@@ -1787,6 +1836,7 @@ pub enum MaybeValidSymbolOpacity {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub enum SymbolShape {
@@ -1796,6 +1846,7 @@ pub enum SymbolShape {
     PlusSign,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]
@@ -1808,6 +1859,7 @@ pub enum MaybeValidSymbolShape {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct Color {
@@ -1818,6 +1870,7 @@ pub struct Color {
     pub locs: Option<ColorLocs>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct ColorLocs {
@@ -1826,6 +1879,7 @@ pub struct ColorLocs {
     pub blue: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]
@@ -1838,6 +1892,7 @@ pub enum MaybeValidU8 {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]
@@ -1850,6 +1905,7 @@ pub enum MaybeValidU32 {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct InvalidColor {
@@ -1860,6 +1916,7 @@ pub struct InvalidColor {
     pub locs: Option<ColorLocs>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]
@@ -1872,6 +1929,7 @@ pub enum MaybeValidColor {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(tag = "type")]
@@ -1894,6 +1952,7 @@ pub enum ShotMeasurements {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct CompassAndTapeLocs {
@@ -1906,6 +1965,7 @@ pub struct CompassAndTapeLocs {
     pub target_height: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct RectilinearLocs {
@@ -1914,6 +1974,7 @@ pub struct RectilinearLocs {
     pub elevation: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(tag = "type")]
@@ -1936,6 +1997,7 @@ pub enum InvalidShotMeasurements {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 #[schemars(deny_unknown_fields)]
@@ -1948,6 +2010,7 @@ pub enum MaybeValidShotMeasurements {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields, _unstable_ref_variants)]
 #[serde(tag = "type")]
@@ -2050,6 +2113,7 @@ pub enum SrvItem {
     },
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct UnitsDirectiveLocs {
@@ -2057,6 +2121,7 @@ pub struct UnitsDirectiveLocs {
     pub comment: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct PrefixDirectiveLocs {
@@ -2065,6 +2130,7 @@ pub struct PrefixDirectiveLocs {
     pub comment: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct NoteDirectiveLocs {
@@ -2074,6 +2140,7 @@ pub struct NoteDirectiveLocs {
     pub comment: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct DateDirectiveLocs {
@@ -2084,6 +2151,7 @@ pub struct DateDirectiveLocs {
     pub comment: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct FixDirectiveLocs {
@@ -2097,6 +2165,7 @@ pub struct FixDirectiveLocs {
     pub comment: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct FlagDirectiveLocs {
@@ -2106,6 +2175,7 @@ pub struct FlagDirectiveLocs {
     pub comment: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct SymbolDirectiveLocs {
@@ -2118,6 +2188,7 @@ pub struct SymbolDirectiveLocs {
     pub comment: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct ShotLocs {
@@ -2138,6 +2209,7 @@ pub struct ShotLocs {
     pub comment: Option<SourceLoc>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(tag = "type")]
@@ -2228,6 +2300,7 @@ impl InvalidSrvItem {
     }
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 #[schemars(deny_unknown_fields)]
@@ -2246,6 +2319,7 @@ impl From<SrvItem> for MaybeValidSrvItem {
     }
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct WallsSrvFile {
@@ -2253,12 +2327,14 @@ pub struct WallsSrvFile {
     pub issues: Option<Vec<ParseIssue>>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct InvalidWallsSrvFile {
     pub items: Vec<MaybeValidSrvItem>,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]

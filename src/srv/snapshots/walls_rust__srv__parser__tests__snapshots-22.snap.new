@@ -1,15 +1,13 @@
 ---
 source: src/srv/parser_test.rs
 assertion_line: 29
-expression: "&parse_test_srv(\"#units order=nuda\")"
+expression: "&parse(\"#units order=nuda\")"
 ---
 INVALID:
   items:
     - INVALID:
-        comment: ~
         loc: "#units order=nuda"
         locs:
-          comment: ~
           directive: "#units"
         options:
           - INVALID:
@@ -26,7 +24,6 @@ INVALID:
             issues:
               - 0
         type: UnitsDirective
-      issues: ~
 issues:
   - code: EINVALIDMEASUREMENTORDER
     loc: nuda

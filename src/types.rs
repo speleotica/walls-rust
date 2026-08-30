@@ -7,6 +7,7 @@ use std::{
 use regex::{Captures, Match, Regex};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 #[derive(JsonSchema, Serialize, Deserialize, Eq, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
@@ -116,6 +117,7 @@ pub enum ParseIssueSeverity {
     Warning,
 }
 
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct ParseIssue {

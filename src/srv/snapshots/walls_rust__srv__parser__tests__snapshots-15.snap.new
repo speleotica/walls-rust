@@ -1,14 +1,11 @@
 ---
 source: src/srv/parser_test.rs
 assertion_line: 22
-expression: "&parse_test_srv(\"#units order=nue\")"
+expression: "&parse(\"#units order=nue\")"
 ---
-issues: ~
 items:
-  - comment: ~
-    loc: "#units order=nue"
+  - loc: "#units order=nue"
     locs:
-      comment: ~
       directive: "#units"
     options:
       - loc: order=nue

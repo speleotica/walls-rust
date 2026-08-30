@@ -1,15 +1,13 @@
 ---
 source: src/srv/parser_test.rs
 assertion_line: 18
-expression: "&parse_test_srv(\"#units order=daqv\")"
+expression: "&parse(\"#units order=daqv\")"
 ---
 INVALID:
   items:
     - INVALID:
-        comment: ~
         loc: "#units order=daqv"
         locs:
-          comment: ~
           directive: "#units"
         options:
           - INVALID:
@@ -25,9 +23,7 @@ INVALID:
                   issues:
                     - 0
                 - Inclination
-            issues: ~
         type: UnitsDirective
-      issues: ~
 issues:
   - code: EINVALIDORDERITEM
     loc: da

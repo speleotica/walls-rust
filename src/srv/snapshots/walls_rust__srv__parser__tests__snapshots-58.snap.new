@@ -1,0 +1,17 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 70
+expression: "&parse(\"#units ab=grads\")"
+---
+items:
+  - loc: "#units ab=grads"
+    locs:
+      directive: "#units"
+    options:
+      - loc: ab=grads
+        locs:
+          option: ab
+          unit: grads
+        option: BacksightAzimuthUnit
+        unit: Grads
+    type: UnitsDirective

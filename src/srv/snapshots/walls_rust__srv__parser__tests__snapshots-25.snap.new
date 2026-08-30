@@ -1,9 +1,8 @@
 ---
 source: src/srv/parser_test.rs
 assertion_line: 32
-expression: "&parse_test_srv(\"#units order=uen;test\")"
+expression: "&parse(\"#units order=uen;test\")"
 ---
-issues: ~
 items:
   - comment: test
     loc: "#units order=uen"

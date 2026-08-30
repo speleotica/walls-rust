@@ -1,14 +1,11 @@
 ---
 source: src/srv/parser_test.rs
 assertion_line: 23
-expression: "&parse_test_srv(\"#units order=uen\")"
+expression: "&parse(\"#units order=uen\")"
 ---
-issues: ~
 items:
-  - comment: ~
-    loc: "#units order=uen"
+  - loc: "#units order=uen"
     locs:
-      comment: ~
       directive: "#units"
     options:
       - loc: order=uen

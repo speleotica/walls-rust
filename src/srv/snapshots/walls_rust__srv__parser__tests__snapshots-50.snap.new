@@ -1,0 +1,17 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 61
+expression: "&parse(\"#units a=m\")"
+---
+items:
+  - loc: "#units a=m"
+    locs:
+      directive: "#units"
+    options:
+      - loc: a=m
+        locs:
+          option: a
+          unit: m
+        option: FrontsightAzimuthUnit
+        unit: Mils
+    type: UnitsDirective

@@ -1,0 +1,27 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 63
+expression: "&parse(\"#units a=blargh\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units a=blargh"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: a=blargh
+              locs:
+                option: a
+                unit: blargh
+              option: FrontsightAzimuthUnit
+              unit: blargh
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDAZIMUTHUNIT
+    loc: blargh
+    message: Invalid azimuth unit
+    severity: Error

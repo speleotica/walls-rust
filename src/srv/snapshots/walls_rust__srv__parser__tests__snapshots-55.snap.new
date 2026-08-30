@@ -1,0 +1,17 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 67
+expression: "&parse(\"#units ab=d\")"
+---
+items:
+  - loc: "#units ab=d"
+    locs:
+      directive: "#units"
+    options:
+      - loc: ab=d
+        locs:
+          option: ab
+          unit: d
+        option: BacksightAzimuthUnit
+        unit: Degrees
+    type: UnitsDirective

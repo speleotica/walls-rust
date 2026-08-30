@@ -1,15 +1,13 @@
 ---
 source: src/srv/parser_test.rs
 assertion_line: 17
-expression: "&parse_test_srv(\"#units order=dv\")"
+expression: "&parse(\"#units order=dv\")"
 ---
 INVALID:
   items:
     - INVALID:
-        comment: ~
         loc: "#units order=dv"
         locs:
-          comment: ~
           directive: "#units"
         options:
           - INVALID:
@@ -24,7 +22,6 @@ INVALID:
             issues:
               - 0
         type: UnitsDirective
-      issues: ~
 issues:
   - code: EINVALIDMEASUREMENTORDER
     loc: dv

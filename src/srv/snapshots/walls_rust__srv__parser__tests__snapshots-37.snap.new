@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 47
+expression: "&parse(\"#units s\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units s"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              locs:
+                option: s
+              option: SecondaryDistanceUnit
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGVALUE
+    loc: ""
+    message: Missing =
+    severity: Error

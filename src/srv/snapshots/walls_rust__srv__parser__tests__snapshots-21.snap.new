@@ -1,15 +1,13 @@
 ---
 source: src/srv/parser_test.rs
 assertion_line: 28
-expression: "&parse_test_srv(\"#units order=nuqe\")"
+expression: "&parse(\"#units order=nuqe\")"
 ---
 INVALID:
   items:
     - INVALID:
-        comment: ~
         loc: "#units order=nuqe"
         locs:
-          comment: ~
           directive: "#units"
         options:
           - INVALID:
@@ -25,9 +23,7 @@ INVALID:
                   issues:
                     - 0
                 - Easting
-            issues: ~
         type: UnitsDirective
-      issues: ~
 issues:
   - code: EINVALIDORDERITEM
     loc: nu

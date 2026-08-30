@@ -1,0 +1,17 @@
+---
+source: src/srv/parser_test.rs
+assertion_line: 72
+expression: "&parse(\"#units ab=mils\")"
+---
+items:
+  - loc: "#units ab=mils"
+    locs:
+      directive: "#units"
+    options:
+      - loc: ab=mils
+        locs:
+          option: ab
+          unit: mils
+        option: BacksightAzimuthUnit
+        unit: Mils
+    type: UnitsDirective

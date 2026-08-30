@@ -1,15 +1,13 @@
 ---
 source: src/srv/parser_test.rs
 assertion_line: 27
-expression: "&parse_test_srv(\"#units order=nu\")"
+expression: "&parse(\"#units order=nu\")"
 ---
 INVALID:
   items:
     - INVALID:
-        comment: ~
         loc: "#units order=nu"
         locs:
-          comment: ~
           directive: "#units"
         options:
           - INVALID:
@@ -24,7 +22,6 @@ INVALID:
             issues:
               - 0
         type: UnitsDirective
-      issues: ~
 issues:
   - code: EINVALIDMEASUREMENTORDER
     loc: nu
