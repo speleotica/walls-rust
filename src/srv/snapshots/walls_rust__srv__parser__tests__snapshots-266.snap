@@ -1,0 +1,18 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units Rect=+3.8m\")"
+---
+items:
+  - loc: "#units Rect=+3.8m"
+    locs:
+      directive: "#units"
+    options:
+      - correction:
+          unit: Mils
+          value: 3.8
+        loc: Rect=+3.8m
+        locs:
+          correction: +3.8m
+          option: Rect
+        option: RectilinearNorthCorrection
+    type: UnitsDirective

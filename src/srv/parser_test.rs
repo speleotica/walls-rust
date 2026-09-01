@@ -290,6 +290,19 @@ fn test_snapshots() {
     assert_yaml_snapshot!(&parse("#prefix3 ab!c"));
 
     assert_yaml_snapshot!(&parse("#grefix"));
+
+    assert_yaml_snapshot!(&parse("#units ct"));
+    assert_yaml_snapshot!(&parse("#Units CT;comment"));
+
+    assert_yaml_snapshot!(&parse("#units rect"));
+    assert_yaml_snapshot!(&parse("#units Rect;comment"));
+    assert_yaml_snapshot!(&parse("#units Rect="));
+    assert_yaml_snapshot!(&parse("#units Rect=3"));
+    assert_yaml_snapshot!(&parse("#units Rect=3.8"));
+    assert_yaml_snapshot!(&parse("#units Rect=-3.8g"));
+    assert_yaml_snapshot!(&parse("#units Rect=+3.8m"));
+    assert_yaml_snapshot!(&parse("#units Rect=+3.8q"));
+    assert_yaml_snapshot!(&parse("#units Rect=--3.8"));
 }
 
 fn parse(input: &str) -> Value {

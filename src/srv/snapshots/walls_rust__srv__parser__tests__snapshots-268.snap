@@ -1,0 +1,25 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units Rect=--3.8\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units Rect=--3.8"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: Rect=--3.8
+              locs:
+                correction: ""
+                option: Rect
+              option: RectilinearNorthCorrection
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINVALIDANGLE
+    loc: "--3.8"
+    message: Invalid angle
+    severity: Error

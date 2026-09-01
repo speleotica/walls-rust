@@ -4,13 +4,13 @@ use std::{num::ParseFloatError, sync::LazyLock};
 
 use crate::{
     srv::types::{
-        Angle, AngleUnit, CompassAndTapeItem, EINCLINATIONOUTOFRANGE, EINVALIDANGLE,
-        EINVALIDANGLEUNIT, EINVALIDAZIMUTH, EINVALIDAZIMUTHUNIT, EINVALIDCASECONVERSION,
-        EINVALIDDIRECTIVE, EINVALIDINCLINATION, EINVALIDINCLINATIONUNIT, EINVALIDLENGTH,
-        EINVALIDLENGTHUNIT, EINVALIDMEASUREMENTORDER, EINVALIDOPTION, EINVALIDORDERITEM,
-        EINVALIDTAPINGMETHOD, EINVALIDUNITVARIANCE, EMISSINGINCHES, EMISSINGVALUE,
-        EMISSINGWHITESPACE, EUNEXPECTED, Inclination, InclinationUnit, InvalidSrvItem,
-        InvalidUnitsOption, InvalidValue, InvalidWallsSrvFile, Length, LengthUnit,
+        Angle, AngleUnit, CompassAndTapeItem, CorrectionOptionLocs, EINCLINATIONOUTOFRANGE,
+        EINVALIDANGLE, EINVALIDANGLEUNIT, EINVALIDAZIMUTH, EINVALIDAZIMUTHUNIT,
+        EINVALIDCASECONVERSION, EINVALIDDIRECTIVE, EINVALIDINCLINATION, EINVALIDINCLINATIONUNIT,
+        EINVALIDLENGTH, EINVALIDLENGTHUNIT, EINVALIDMEASUREMENTORDER, EINVALIDOPTION,
+        EINVALIDORDERITEM, EINVALIDTAPINGMETHOD, EINVALIDUNITVARIANCE, EMISSINGINCHES,
+        EMISSINGVALUE, EMISSINGWHITESPACE, EUNEXPECTED, Inclination, InclinationUnit,
+        InvalidSrvItem, InvalidUnitsOption, InvalidValue, InvalidWallsSrvFile, Length, LengthUnit,
         MaybeValidOrderItem, MaybeValidSrvItem, MaybeValidUnitsOption, MaybeValidWallsSrvFile,
         OrderItem, OrderOptionLocs, PrefixDirectiveLocs, PrefixLevel, RectilinearItem, SrvItem,
         SrvSettings, StationNameCaseConversion, TapingMethod, UnitsDirectiveLocs, UnitsOption,
@@ -155,8 +155,8 @@ impl<'i> WallsSrvParser<'i> {
         while self.skip_whitespace() {
             if let Some(m) = self.find(&UNITS_OPTION) {
                 let option = match m.as_str().to_ascii_lowercase().as_str() {
-                    "ct" => todo!(),
-                    "rect" => todo!(),
+                    "ct" => UnitsOption::CompassAndTape { loc: Some(m.loc()) }.into(),
+                    "rect" => self.rect_option(m),
                     "order" => self.order_option(m),
                     "f" | "feet" => {
                         UnitsOption::distance_unit(LengthUnit::Feet, Some(m.loc())).into()
@@ -435,6 +435,76 @@ impl<'i> WallsSrvParser<'i> {
             }
             Err(issue) => {
                 invalid(None, option.loc(), None).with_issues(vec![self.push_issue(issue)])
+            }
+        }
+    }
+    fn rect_option(&mut self, option: ParseMatch<'i>) -> MaybeValidUnitsOption {
+        if !self.is_match(&UNITS_OPTION_EQUALS) {
+            return UnitsOption::Rectilinear {
+                loc: Some(option.loc()),
+            }
+            .into();
+        }
+        let start = self.pos();
+        if let Some(value) = self.find(&UNITS_OPTION_VALUE) {
+            let mut parser = value.reparse();
+            let result = match signed_angle(&mut parser, AngleUnit::Degrees) {
+                Ok(Some((correction, correction_loc))) => UnitsOption::RectilinearNorthCorrection {
+                    correction,
+                    loc: Some(option.start_pos().up_to(correction_loc.end)),
+                    locs: Some(CorrectionOptionLocs {
+                        option: option.loc(),
+                        correction: Some(correction_loc),
+                    }),
+                }
+                .into(),
+                Ok(None) => {
+                    parser.rest();
+                    MaybeValidUnitsOption::Invalid {
+                        invalid: InvalidUnitsOption::RectilinearNorthCorrection {
+                            correction: None,
+                            loc: Some(option.start_pos().up_to(parser.pos())),
+                            locs: Some(CorrectionOptionLocs {
+                                option: option.loc(),
+                                correction: Some(start.into()),
+                            }),
+                        },
+                        issues: Some(vec![self.push_error(
+                            EINVALIDANGLE,
+                            Some("Invalid angle".into()),
+                            Some(value.loc()),
+                        )]),
+                    }
+                }
+                Err(err) => MaybeValidUnitsOption::Invalid {
+                    invalid: InvalidUnitsOption::RectilinearNorthCorrection {
+                        correction: None,
+                        loc: Some(option.start_pos().up_to(parser.pos())),
+                        locs: Some(CorrectionOptionLocs {
+                            option: option.loc(),
+                            correction: Some(start.up_to(parser.pos()).into()),
+                        }),
+                    },
+                    issues: Some(vec![self.push_issue(err.into())]),
+                },
+            };
+            self.expect_done(&mut parser);
+            result
+        } else {
+            MaybeValidUnitsOption::Invalid {
+                invalid: InvalidUnitsOption::RectilinearNorthCorrection {
+                    correction: None,
+                    loc: Some(option.start_pos().up_to(self.pos())),
+                    locs: Some(CorrectionOptionLocs {
+                        option: option.loc(),
+                        correction: Some(self.pos().into()),
+                    }),
+                },
+                issues: Some(vec![self.push_error(
+                    EMISSINGVALUE,
+                    Some(format!("Missing angle").into()),
+                    Some(self.pos().into()),
+                )]),
             }
         }
     }

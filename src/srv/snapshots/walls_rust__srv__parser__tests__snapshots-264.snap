@@ -1,0 +1,18 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units Rect=3.8\")"
+---
+items:
+  - loc: "#units Rect=3.8"
+    locs:
+      directive: "#units"
+    options:
+      - correction:
+          unit: Degrees
+          value: 3.8
+        loc: Rect=3.8
+        locs:
+          correction: "3.8"
+          option: Rect
+        option: RectilinearNorthCorrection
+    type: UnitsDirective

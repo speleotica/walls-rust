@@ -1,12 +1,12 @@
 ---
 source: src/srv/parser_test.rs
-expression: "&parse(\"#units rect\")"
+expression: "&parse(\"#units ct\")"
 ---
 items:
-  - loc: "#units rect"
+  - loc: "#units ct"
     locs:
       directive: "#units"
     options:
-      - loc: rect
-        option: Rectilinear
+      - loc: ct
+        option: CompassAndTape
     type: UnitsDirective

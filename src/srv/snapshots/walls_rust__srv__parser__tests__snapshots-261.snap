@@ -1,12 +1,14 @@
 ---
 source: src/srv/parser_test.rs
-expression: "&parse(\"#units rect\")"
+expression: "&parse(\"#units Rect;comment\")"
 ---
 items:
-  - loc: "#units rect"
+  - comment: comment
+    loc: "#units Rect"
     locs:
+      comment: ;comment
       directive: "#units"
     options:
-      - loc: rect
+      - loc: Rect
         option: Rectilinear
     type: UnitsDirective

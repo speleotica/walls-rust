@@ -1,0 +1,14 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#Units CT;comment\")"
+---
+items:
+  - comment: comment
+    loc: "#Units CT"
+    locs:
+      comment: ;comment
+      directive: "#Units"
+    options:
+      - loc: CT
+        option: CompassAndTape
+    type: UnitsDirective
