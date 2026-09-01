@@ -12,7 +12,7 @@ INVALID:
           - INVALID:
               loc: Rect=--3.8
               locs:
-                correction: ""
+                correction: "--3.8"
                 option: Rect
               option: RectilinearNorthCorrection
             issues:

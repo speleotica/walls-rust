@@ -458,24 +458,21 @@ impl<'i> WallsSrvParser<'i> {
                     }),
                 }
                 .into(),
-                Ok(None) => {
-                    parser.rest();
-                    MaybeValidUnitsOption::Invalid {
-                        invalid: InvalidUnitsOption::RectilinearNorthCorrection {
-                            correction: None,
-                            loc: Some(option.start_pos().up_to(parser.pos())),
-                            locs: Some(CorrectionOptionLocs {
-                                option: option.loc(),
-                                correction: Some(start.into()),
-                            }),
-                        },
-                        issues: Some(vec![self.push_error(
-                            EINVALIDANGLE,
-                            Some("Invalid angle".into()),
-                            Some(value.loc()),
-                        )]),
-                    }
-                }
+                Ok(None) => MaybeValidUnitsOption::Invalid {
+                    invalid: InvalidUnitsOption::RectilinearNorthCorrection {
+                        correction: None,
+                        loc: Some(option.start_pos().up_to(parser.rest().loc().end)),
+                        locs: Some(CorrectionOptionLocs {
+                            option: option.loc(),
+                            correction: Some(value.loc()),
+                        }),
+                    },
+                    issues: Some(vec![self.push_error(
+                        EINVALIDANGLE,
+                        Some("Invalid angle".into()),
+                        Some(value.loc()),
+                    )]),
+                },
                 Err(err) => MaybeValidUnitsOption::Invalid {
                     invalid: InvalidUnitsOption::RectilinearNorthCorrection {
                         correction: None,
