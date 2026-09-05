@@ -303,6 +303,26 @@ fn test_snapshots() {
     assert_yaml_snapshot!(&parse("#units Rect=+3.8m"));
     assert_yaml_snapshot!(&parse("#units Rect=+3.8q"));
     assert_yaml_snapshot!(&parse("#units Rect=--3.8"));
+
+    assert_yaml_snapshot!(&parse("#units lrud"));
+    assert_yaml_snapshot!(&parse("#units Lrud="));
+    assert_yaml_snapshot!(&parse("#units Lrud=f"));
+    assert_yaml_snapshot!(&parse("#units lrud=F"));
+    assert_yaml_snapshot!(&parse("#units Lrud=t"));
+    assert_yaml_snapshot!(&parse("#units lrud=T"));
+    assert_yaml_snapshot!(&parse("#units Lrud=fb"));
+    assert_yaml_snapshot!(&parse("#units lrud=FB"));
+    assert_yaml_snapshot!(&parse("#units Lrud=tb"));
+    assert_yaml_snapshot!(&parse("#units lrud=TB"));
+    assert_yaml_snapshot!(&parse("#units lrud=f:"));
+    assert_yaml_snapshot!(&parse("#units lrud=f:lrud"));
+    assert_yaml_snapshot!(&parse("#units lrud=f:dlur"));
+    assert_yaml_snapshot!(&parse("#units lrud=t:lru"));
+    assert_yaml_snapshot!(&parse("#units lrud=t:lrudd"));
+    assert_yaml_snapshot!(&parse("#units lrud=tb:lqrud"));
+    assert_yaml_snapshot!(&parse("#units lrud=:ldur"));
+    assert_yaml_snapshot!(&parse("#units lrud=t:ludr;comment"));
+    assert_yaml_snapshot!(&parse("#units lrud=t:ludr#blah"));
 }
 
 fn parse(input: &str) -> Value {

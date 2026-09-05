@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units lrud=t:ludr;comment\")"
+---
+items:
+  - comment: comment
+    loc: "#units lrud=t:ludr"
+    locs:
+      comment: ;comment
+      directive: "#units"
+    options:
+      - loc: "lrud=t:ludr"
+        locs:
+          option: lrud
+          order: ludr
+          style: t
+        option: Lrud
+        order:
+          - Left
+          - Up
+          - Down
+          - Right
+        style: ToStationPerpendicular
+    type: UnitsDirective

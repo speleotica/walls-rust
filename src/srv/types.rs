@@ -235,6 +235,27 @@ pub enum LrudStyle {
 }
 
 #[skip_serializing_none]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[schemars(deny_unknown_fields)]
+#[serde(untagged)]
+pub enum MaybeValidLrudStyle {
+    Valid(LrudStyle),
+    Invalid(InvalidValue),
+}
+
+impl Into<MaybeValidLrudStyle> for LrudStyle {
+    fn into(self) -> MaybeValidLrudStyle {
+        MaybeValidLrudStyle::Valid(self)
+    }
+}
+
+impl Into<MaybeValidLrudStyle> for InvalidValue {
+    fn into(self) -> MaybeValidLrudStyle {
+        MaybeValidLrudStyle::Invalid(self)
+    }
+}
+
+#[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum LrudItem {
@@ -251,6 +272,31 @@ pub enum LrudItem {
 pub enum MaybeValidLrudItem {
     Valid(LrudItem),
     Invalid(InvalidValue),
+}
+
+impl Into<MaybeValidLrudItem> for LrudItem {
+    fn into(self) -> MaybeValidLrudItem {
+        MaybeValidLrudItem::Valid(self)
+    }
+}
+
+impl Into<MaybeValidLrudItem> for InvalidValue {
+    fn into(self) -> MaybeValidLrudItem {
+        MaybeValidLrudItem::Invalid(self)
+    }
+}
+
+#[skip_serializing_none]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[schemars(deny_unknown_fields)]
+#[serde(untagged)]
+pub enum MaybeValidLrudOrder {
+    Valid([LrudItem; 4]),
+    Invalid {
+        #[serde(rename = "INVALID")]
+        invalid: Vec<MaybeValidLrudItem>,
+        issues: Option<Vec<usize>>,
+    },
 }
 
 #[skip_serializing_none]
@@ -1340,10 +1386,8 @@ pub enum InvalidUnitsOption {
     },
     #[schemars(title = "InvalidLrudOption")]
     Lrud {
-        // TODO: make maybe valid type
-        style: Option<String>,
-        // TODO: make maybe valid type
-        order: Option<String>,
+        style: Option<MaybeValidLrudStyle>,
+        order: Option<MaybeValidLrudOrder>,
         loc: Option<SourceLoc>,
         locs: Option<LrudOptionLocs>,
     },
@@ -1703,6 +1747,19 @@ impl InvalidUnitsOption {
             issues: Some(issues),
         }
     }
+}
+
+#[skip_serializing_none]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[serde(untagged)]
+#[schemars(deny_unknown_fields)]
+pub enum MaybeValidLrud {
+    Valid(LrudStyle),
+    Invalid {
+        #[serde(rename = "INVALID")]
+        invalid: String,
+        issues: Option<Vec<usize>>,
+    },
 }
 
 #[skip_serializing_none]
@@ -2374,5 +2431,10 @@ pub const EINVALIDINCLINATIONUNIT: &str = "EINVALIDINCLINATIONUNIT";
 pub const EINVALIDCASECONVERSION: &str = "EINVALIDCASECONVERSION";
 pub const EINVALIDTAPINGMETHOD: &str = "EINVALIDTAPINGMETHOD";
 pub const EINVALIDUNITVARIANCE: &str = "EINVALIDUNITVARIANCE";
+pub const EINVALIDLRUDSTYLE: &str = "EINVALIDLRUDSTYLE";
+pub const EMISSINGLRUDSTYLE: &str = "EMISSINGLRUDSTYLE";
+pub const EINVALIDLRUDORDERITEM: &str = "EINVALIDLRUDORDERITEM";
+pub const EINVALIDLRUDORDER: &str = "EINVALIDLRUDORDER";
+pub const EMISSINGLRUDORDER: &str = "EMISSINGLRUDORDER";
 pub const EMISSINGINCHES: &str = "EMISSINGINCHES";
 pub const EMISSINGWHITESPACE: &str = "EMISSINGWHITESPACE";

@@ -1,0 +1,30 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units lrud=:ldur\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units lrud=:ldur"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: "lrud=:ldur"
+              locs:
+                option: lrud
+                order: ldur
+              option: Lrud
+              order:
+                - Left
+                - Down
+                - Up
+                - Right
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGLRUDSTYLE
+    loc: ""
+    message: Missing LRUD style
+    severity: Error

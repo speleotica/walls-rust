@@ -7,14 +7,16 @@ use crate::{
         Angle, AngleUnit, CompassAndTapeItem, CorrectionOptionLocs, EINCLINATIONOUTOFRANGE,
         EINVALIDANGLE, EINVALIDANGLEUNIT, EINVALIDAZIMUTH, EINVALIDAZIMUTHUNIT,
         EINVALIDCASECONVERSION, EINVALIDDIRECTIVE, EINVALIDINCLINATION, EINVALIDINCLINATIONUNIT,
-        EINVALIDLENGTH, EINVALIDLENGTHUNIT, EINVALIDMEASUREMENTORDER, EINVALIDOPTION,
-        EINVALIDORDERITEM, EINVALIDTAPINGMETHOD, EINVALIDUNITVARIANCE, EMISSINGINCHES,
-        EMISSINGVALUE, EMISSINGWHITESPACE, EUNEXPECTED, Inclination, InclinationUnit,
-        InvalidSrvItem, InvalidUnitsOption, InvalidValue, InvalidWallsSrvFile, Length, LengthUnit,
-        MaybeValidOrderItem, MaybeValidSrvItem, MaybeValidUnitsOption, MaybeValidWallsSrvFile,
-        OrderItem, OrderOptionLocs, PrefixDirectiveLocs, PrefixLevel, RectilinearItem, SrvItem,
-        SrvSettings, StationNameCaseConversion, TapingMethod, UnitsDirectiveLocs, UnitsOption,
-        WallsSrvFile,
+        EINVALIDLENGTH, EINVALIDLENGTHUNIT, EINVALIDLRUDORDER, EINVALIDLRUDORDERITEM,
+        EINVALIDLRUDSTYLE, EINVALIDMEASUREMENTORDER, EINVALIDOPTION, EINVALIDORDERITEM,
+        EINVALIDTAPINGMETHOD, EINVALIDUNITVARIANCE, EMISSINGINCHES, EMISSINGLRUDORDER,
+        EMISSINGLRUDSTYLE, EMISSINGVALUE, EMISSINGWHITESPACE, EUNEXPECTED, Inclination,
+        InclinationUnit, InvalidSrvItem, InvalidUnitsOption, InvalidValue, InvalidWallsSrvFile,
+        Length, LengthUnit, LrudItem, LrudOptionLocs, LrudStyle, MaybeValidLrudItem,
+        MaybeValidLrudOrder, MaybeValidLrudStyle, MaybeValidOrderItem, MaybeValidSrvItem,
+        MaybeValidUnitsOption, MaybeValidWallsSrvFile, OrderItem, OrderOptionLocs,
+        PrefixDirectiveLocs, PrefixLevel, RectilinearItem, SrvItem, SrvSettings,
+        StationNameCaseConversion, TapingMethod, UnitsDirectiveLocs, UnitsOption, WallsSrvFile,
     },
     types::{ParseIssue, ParseMatch, ParseState, SourceLoc, SourcePos},
 };
@@ -37,12 +39,13 @@ const AZIMUTH_UNIT_SUFFIX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)
 const INCLINATION_UNIT_SUFFIX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^(?i)[dgmp]").unwrap());
 const NAME: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[^:;,#\s]+").unwrap());
+const COLON: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^:").unwrap());
 const LETTER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)[a-z]").unwrap());
 const UNITS_OPTION: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[^:;,#=\"\\s]+").unwrap());
 const UNEXPECTED_AFTER_UNITS_OPTION: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[^\s;]+").unwrap());
 const UNITS_OPTION_EQUALS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\s*=\s*").unwrap());
-const UNITS_OPTION_VALUE: LazyLock<Regex> = UNITS_OPTION;
+const UNITS_OPTION_VALUE: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[^;#=\"\\s]+").unwrap());
 const SIGN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[-+]").unwrap());
 const SIGNED_INTEGER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[-+]?\d+").unwrap());
 const UNSIGNED_INTEGER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d+").unwrap());
@@ -259,7 +262,7 @@ impl<'i> WallsSrvParser<'i> {
                         UnitsOption::station_name_case,
                         InvalidUnitsOption::station_name_case,
                     ),
-                    "lrud" => todo!(),
+                    "lrud" => self.lrud_option(m),
                     "prefix" => todo!(),
                     "prefix2" => todo!(),
                     "prefix3" => todo!(),
@@ -545,30 +548,27 @@ impl<'i> WallsSrvParser<'i> {
                         .into()
                     }
                     invalid => {
-                        let order: Vec<MaybeValidOrderItem> =
-                            invalid
-                                .chars()
-                                .enumerate()
-                                .into_iter()
-                                .map(|(index, c)| match c {
-                                    'd' => OrderItem::Distance.into(),
-                                    'a' => OrderItem::Azimuth.into(),
-                                    'v' => OrderItem::Inclination.into(),
-                                    'e' => OrderItem::Easting.into(),
-                                    'n' => OrderItem::Northing.into(),
-                                    'u' => OrderItem::Elevation.into(),
-                                    invalid => MaybeValidOrderItem::Invalid(InvalidValue {
-                                        invalid: invalid.into(),
-                                        issues: Some(vec![self.push_error(
-                                            EINVALIDORDERITEM,
-                                            Some("Invalid measurement item".into()),
-                                            Some(value.loc().start.up_to(
-                                                value.loc().start + &value.as_str()[0..index],
-                                            )),
-                                        )]),
-                                    }),
-                                })
-                                .collect();
+                        let order: Vec<MaybeValidOrderItem> = invalid
+                            .char_indices()
+                            .map(|(byte_pos, c)| match c {
+                                'd' => OrderItem::Distance.into(),
+                                'a' => OrderItem::Azimuth.into(),
+                                'v' => OrderItem::Inclination.into(),
+                                'e' => OrderItem::Easting.into(),
+                                'n' => OrderItem::Northing.into(),
+                                'u' => OrderItem::Elevation.into(),
+                                invalid => MaybeValidOrderItem::Invalid(InvalidValue {
+                                    invalid: invalid.into(),
+                                    issues: Some(vec![self.push_error(
+                                        EINVALIDORDERITEM,
+                                        Some("Invalid measurement item".into()),
+                                        Some(value.loc().start.up_to(
+                                            value.loc().start + &value.as_str()[0..byte_pos],
+                                        )),
+                                    )]),
+                                }),
+                            })
+                            .collect();
                         let all_items_valid = order
                             .iter()
                             .all(|o| matches!(o, MaybeValidOrderItem::Valid(_)));
@@ -846,6 +846,184 @@ impl<'i> WallsSrvParser<'i> {
             valid,
             invalid,
         );
+    }
+    fn lrud_option(&mut self, option: ParseMatch<'i>) -> MaybeValidUnitsOption {
+        match self.get_option_value("LRUD options") {
+            Ok(value) => {
+                let lower = value.as_str().to_ascii_lowercase();
+                let mut p = ParseState::new(lower.as_str(), value.start_pos());
+
+                let mut issues: Vec<usize> = Vec::new();
+
+                let style =
+                    p.find(&UNITS_OPTION)
+                        .map(|m| match m.as_str().to_ascii_lowercase().as_str() {
+                            "f" => (LrudStyle::FromStationPerpendicular.into(), m.loc()),
+                            "t" => (LrudStyle::ToStationPerpendicular.into(), m.loc()),
+                            "fb" => (LrudStyle::FromStationBisector.into(), m.loc()),
+                            "tb" => (LrudStyle::ToStationBisector.into(), m.loc()),
+                            _ => (
+                                MaybeValidLrudStyle::Invalid(InvalidValue {
+                                    invalid: m.as_str().into(),
+                                    issues: Some(vec![self.push_error(
+                                        EINVALIDLRUDSTYLE,
+                                        Some("Invalid LRUD style".into()),
+                                        Some(m.loc()),
+                                    )]),
+                                }),
+                                m.loc(),
+                            ),
+                        });
+
+                if style.is_none() {
+                    issues.push(self.push_error(
+                        EMISSINGLRUDSTYLE,
+                        Some("Missing LRUD style".into()),
+                        Some(p.pos().into()),
+                    ));
+                }
+
+                let order = match p.is_match(&COLON) {
+                    true => p
+                        .find(&UNITS_OPTION)
+                        .map(|m| {
+                            let order: Vec<MaybeValidLrudItem> = m
+                                .as_str()
+                                .to_ascii_lowercase()
+                                .char_indices()
+                                .map(|(byte_pos, c)| match c {
+                                    'l' => LrudItem::Left.into(),
+                                    'r' => LrudItem::Right.into(),
+                                    'u' => LrudItem::Up.into(),
+                                    'd' => LrudItem::Down.into(),
+                                    _ => MaybeValidLrudItem::Invalid(InvalidValue {
+                                        invalid: c.into(),
+                                        issues: Some(vec![self.push_error(
+                                            EINVALIDLRUDORDERITEM,
+                                            Some("Invalid LRUD order item".into()),
+                                            Some((m.start_pos() + &m.as_str()[0..byte_pos]).up_to(
+                                                m.start_pos() + &m.as_str()[0..byte_pos + 1],
+                                            )),
+                                        )]),
+                                    }),
+                                })
+                                .collect();
+                            if !order
+                                .iter()
+                                .all(|i| matches!(i, MaybeValidLrudItem::Valid(_)))
+                            {
+                                (
+                                    MaybeValidLrudOrder::Invalid {
+                                        invalid: order,
+                                        issues: None,
+                                    },
+                                    m.loc(),
+                                )
+                            } else if order.len() == 4
+                                && order.contains(&LrudItem::Left.into())
+                                && order.contains(&LrudItem::Right.into())
+                                && order.contains(&LrudItem::Up.into())
+                                && order.contains(&LrudItem::Right.into())
+                            {
+                                let valid: Vec<LrudItem> = order
+                                    .into_iter()
+                                    .map(|i| match i {
+                                        MaybeValidLrudItem::Valid(i) => i,
+                                        _ => unreachable!(),
+                                    })
+                                    .collect();
+                                (
+                                    MaybeValidLrudOrder::Valid([
+                                        valid[0], valid[1], valid[2], valid[3],
+                                    ]),
+                                    m.loc(),
+                                )
+                            } else {
+                                (
+                                    MaybeValidLrudOrder::Invalid {
+                                        invalid: order,
+                                        issues: Some(vec![self.push_error(
+                                            EINVALIDLRUDORDER,
+                                            Some("Invalid LRUD order".into()),
+                                            Some(m.loc()),
+                                        )]),
+                                    },
+                                    m.loc(),
+                                )
+                            }
+                        })
+                        .or_else(|| {
+                            issues.push(self.push_error(
+                                EMISSINGLRUDORDER,
+                                Some("Missing LRUD order".into()),
+                                Some(p.pos().into()),
+                            ));
+                            None
+                        }),
+                    false => None,
+                };
+
+                match (style, order) {
+                    (
+                        Some((MaybeValidLrudStyle::Valid(style), style_loc)),
+                        Some((MaybeValidLrudOrder::Valid(order), order_loc)),
+                    ) => UnitsOption::Lrud {
+                        style,
+                        order: Some(order),
+                        loc: Some(option.start_pos().up_to(p.pos())),
+                        locs: Some(LrudOptionLocs {
+                            option: option.loc(),
+                            style: Some(style_loc),
+                            order: Some(order_loc),
+                        }),
+                    }
+                    .into(),
+                    (Some((MaybeValidLrudStyle::Valid(style), style_loc)), None) => {
+                        UnitsOption::Lrud {
+                            style,
+                            order: None,
+                            loc: Some(option.start_pos().up_to(p.pos())),
+                            locs: Some(LrudOptionLocs {
+                                option: option.loc(),
+                                style: Some(style_loc),
+                                order: None,
+                            }),
+                        }
+                        .into()
+                    }
+                    (style, order) => {
+                        let (style, style_loc) = style.unzip();
+                        let (order, order_loc) = order.unzip();
+                        MaybeValidUnitsOption::Invalid {
+                            invalid: InvalidUnitsOption::Lrud {
+                                style,
+                                order,
+                                loc: Some(option.start_pos().up_to(p.pos())),
+                                locs: Some(LrudOptionLocs {
+                                    option: option.loc(),
+                                    style: style_loc,
+                                    order: order_loc,
+                                }),
+                            },
+                            issues: (!issues.is_empty()).then_some(issues),
+                        }
+                    }
+                }
+            }
+            Err(issue) => MaybeValidUnitsOption::Invalid {
+                invalid: InvalidUnitsOption::Lrud {
+                    style: None,
+                    order: None,
+                    loc: Some(option.start_pos().up_to(self.pos())),
+                    locs: Some(LrudOptionLocs {
+                        option: option.loc(),
+                        order: None,
+                        style: None,
+                    }),
+                },
+                issues: Some(vec![self.push_issue(issue)]),
+            },
+        }
     }
     fn prefix_directive(
         &mut self,

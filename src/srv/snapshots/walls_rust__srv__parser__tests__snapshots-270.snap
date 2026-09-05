@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units Lrud=\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units Lrud="
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: Lrud=
+              locs:
+                option: Lrud
+              option: Lrud
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGVALUE
+    loc: ""
+    message: Missing LRUD options
+    severity: Error

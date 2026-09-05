@@ -1,0 +1,22 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units lrud=f:dlur\")"
+---
+items:
+  - loc: "#units lrud=f:dlur"
+    locs:
+      directive: "#units"
+    options:
+      - loc: "lrud=f:dlur"
+        locs:
+          option: lrud
+          order: dlur
+          style: f
+        option: Lrud
+        order:
+          - Down
+          - Left
+          - Up
+          - Right
+        style: FromStationPerpendicular
+    type: UnitsDirective

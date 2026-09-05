@@ -1,0 +1,34 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units lrud=t:lrudd\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units lrud=t:lrudd"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: "lrud=t:lrudd"
+              locs:
+                option: lrud
+                order: lrudd
+                style: t
+              option: Lrud
+              order:
+                INVALID:
+                  - Left
+                  - Right
+                  - Up
+                  - Down
+                  - Down
+                issues:
+                  - 0
+              style: ToStationPerpendicular
+        type: UnitsDirective
+issues:
+  - code: EINVALIDLRUDORDER
+    loc: lrudd
+    message: Invalid LRUD order
+    severity: Error

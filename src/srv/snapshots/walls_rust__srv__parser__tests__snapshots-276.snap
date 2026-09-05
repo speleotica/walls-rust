@@ -1,0 +1,16 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units lrud=FB\")"
+---
+items:
+  - loc: "#units lrud=FB"
+    locs:
+      directive: "#units"
+    options:
+      - loc: lrud=FB
+        locs:
+          option: lrud
+          style: FB
+        option: Lrud
+        style: FromStationBisector
+    type: UnitsDirective

@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units lrud\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units lrud"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              loc: lrud
+              locs:
+                option: lrud
+              option: Lrud
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGVALUE
+    loc: ""
+    message: Missing =
+    severity: Error

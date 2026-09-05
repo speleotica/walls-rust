@@ -1,0 +1,16 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units lrud=T\")"
+---
+items:
+  - loc: "#units lrud=T"
+    locs:
+      directive: "#units"
+    options:
+      - loc: lrud=T
+        locs:
+          option: lrud
+          style: T
+        option: Lrud
+        style: ToStationPerpendicular
+    type: UnitsDirective
