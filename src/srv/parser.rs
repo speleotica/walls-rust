@@ -855,25 +855,25 @@ impl<'i> WallsSrvParser<'i> {
 
                 let mut issues: Vec<usize> = Vec::new();
 
-                let style =
-                    p.find(&UNITS_OPTION)
-                        .map(|m| match m.as_str().to_ascii_lowercase().as_str() {
-                            "f" => (LrudStyle::FromStationPerpendicular.into(), m.loc()),
-                            "t" => (LrudStyle::ToStationPerpendicular.into(), m.loc()),
-                            "fb" => (LrudStyle::FromStationBisector.into(), m.loc()),
-                            "tb" => (LrudStyle::ToStationBisector.into(), m.loc()),
-                            _ => (
-                                MaybeValidLrudStyle::Invalid(InvalidValue {
-                                    invalid: m.as_str().into(),
-                                    issues: Some(vec![self.push_error(
-                                        EINVALIDLRUDSTYLE,
-                                        Some("Invalid LRUD style".into()),
-                                        Some(m.loc()),
-                                    )]),
-                                }),
-                                m.loc(),
-                            ),
-                        });
+                let style = p.find(&UNITS_OPTION).map(|m| {
+                    (
+                        match m.as_str().to_ascii_lowercase().as_str() {
+                            "f" => LrudStyle::FromStationPerpendicular.into(),
+                            "t" => LrudStyle::ToStationPerpendicular.into(),
+                            "fb" => LrudStyle::FromStationBisector.into(),
+                            "tb" => LrudStyle::ToStationBisector.into(),
+                            _ => MaybeValidLrudStyle::Invalid(InvalidValue {
+                                invalid: m.as_str().into(),
+                                issues: Some(vec![self.push_error(
+                                    EINVALIDLRUDSTYLE,
+                                    Some("Invalid LRUD style".into()),
+                                    Some(m.loc()),
+                                )]),
+                            }),
+                        },
+                        m.loc(),
+                    )
+                });
 
                 if style.is_none() {
                     issues.push(self.push_error(
