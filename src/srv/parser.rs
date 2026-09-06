@@ -331,9 +331,6 @@ impl<'i> WallsSrvParser<'i> {
             Some(m.content())
         });
 
-        // TODO: apply changes
-        // self.settings = self.settings.apply_options(options);
-
         if options
             .iter()
             .all(|o| matches!(o, MaybeValidUnitsOption::Valid(_)))
@@ -855,25 +852,25 @@ impl<'i> WallsSrvParser<'i> {
 
                 let mut issues: Vec<usize> = Vec::new();
 
-                let style = p.find(&UNITS_OPTION).map(|m| {
-                    (
-                        match m.as_str().to_ascii_lowercase().as_str() {
-                            "f" => LrudStyle::FromStationPerpendicular.into(),
-                            "t" => LrudStyle::ToStationPerpendicular.into(),
-                            "fb" => LrudStyle::FromStationBisector.into(),
-                            "tb" => LrudStyle::ToStationBisector.into(),
-                            _ => MaybeValidLrudStyle::Invalid(InvalidValue {
-                                invalid: m.as_str().into(),
-                                issues: Some(vec![self.push_error(
-                                    EINVALIDLRUDSTYLE,
-                                    Some("Invalid LRUD style".into()),
-                                    Some(m.loc()),
-                                )]),
-                            }),
-                        },
-                        m.loc(),
-                    )
-                });
+                let style =
+                    p.find(&UNITS_OPTION)
+                        .map(|m| match m.as_str().to_ascii_lowercase().as_str() {
+                            "f" => Ok((LrudStyle::FromStationPerpendicular.into(), m)),
+                            "t" => Ok((LrudStyle::ToStationPerpendicular.into(), m)),
+                            "fb" => Ok((LrudStyle::FromStationBisector.into(), m)),
+                            "tb" => Ok((LrudStyle::ToStationBisector.into(), m)),
+                            _ => Err((
+                                MaybeValidLrudStyle::Invalid(InvalidValue {
+                                    invalid: m.as_str().into(),
+                                    issues: Some(vec![self.push_error(
+                                        EINVALIDLRUDSTYLE,
+                                        Some("Invalid LRUD style".into()),
+                                        Some(m.loc()),
+                                    )]),
+                                }),
+                                m,
+                            )),
+                        });
 
                 if style.is_none() {
                     issues.push(self.push_error(
@@ -912,13 +909,13 @@ impl<'i> WallsSrvParser<'i> {
                                 .iter()
                                 .all(|i| matches!(i, MaybeValidLrudItem::Valid(_)))
                             {
-                                (
+                                Err((
                                     MaybeValidLrudOrder::Invalid {
                                         invalid: order,
                                         issues: None,
                                     },
-                                    m.loc(),
-                                )
+                                    m,
+                                ))
                             } else if order.len() == 4
                                 && order.contains(&LrudItem::Left.into())
                                 && order.contains(&LrudItem::Right.into())
@@ -932,14 +929,9 @@ impl<'i> WallsSrvParser<'i> {
                                         _ => unreachable!(),
                                     })
                                     .collect();
-                                (
-                                    MaybeValidLrudOrder::Valid([
-                                        valid[0], valid[1], valid[2], valid[3],
-                                    ]),
-                                    m.loc(),
-                                )
+                                Ok(([valid[0], valid[1], valid[2], valid[3]], m))
                             } else {
-                                (
+                                Err((
                                     MaybeValidLrudOrder::Invalid {
                                         invalid: order,
                                         issues: Some(vec![self.push_error(
@@ -948,8 +940,8 @@ impl<'i> WallsSrvParser<'i> {
                                             Some(m.loc()),
                                         )]),
                                     },
-                                    m.loc(),
-                                )
+                                    m,
+                                ))
                             }
                         })
                         .or_else(|| {
@@ -963,37 +955,24 @@ impl<'i> WallsSrvParser<'i> {
                     false => None,
                 };
 
-                match (style, order) {
-                    (
-                        Some((MaybeValidLrudStyle::Valid(style), style_loc)),
-                        Some((MaybeValidLrudOrder::Valid(order), order_loc)),
-                    ) => UnitsOption::Lrud {
-                        style,
-                        order: Some(order),
-                        loc: Some(option.start_pos().up_to(p.pos())),
-                        locs: Some(LrudOptionLocs {
-                            option: option.loc(),
-                            style: Some(style_loc),
-                            order: Some(order_loc),
-                        }),
-                    }
-                    .into(),
-                    (Some((MaybeValidLrudStyle::Valid(style), style_loc)), None) => {
+                match (style.transpose(), order.transpose()) {
+                    (Ok(Some((style, style_match))), Ok(order)) => {
+                        let (order, order_match) = order.unzip();
                         UnitsOption::Lrud {
                             style,
-                            order: None,
+                            order,
                             loc: Some(option.start_pos().up_to(p.pos())),
                             locs: Some(LrudOptionLocs {
                                 option: option.loc(),
-                                style: Some(style_loc),
-                                order: None,
+                                style: style_match.into(),
+                                order: order_match.map(|m| m.loc()),
                             }),
                         }
-                        .into()
                     }
+                    .into(),
                     (style, order) => {
-                        let (style, style_loc) = style.unzip();
-                        let (order, order_loc) = order.unzip();
+                        let (style, style_match) = unwrap_maybe_invalid(style);
+                        let (order, order_match) = unwrap_maybe_invalid(order);
                         MaybeValidUnitsOption::Invalid {
                             invalid: InvalidUnitsOption::Lrud {
                                 style,
@@ -1001,8 +980,8 @@ impl<'i> WallsSrvParser<'i> {
                                 loc: Some(option.start_pos().up_to(p.pos())),
                                 locs: Some(LrudOptionLocs {
                                     option: option.loc(),
-                                    style: style_loc,
-                                    order: order_loc,
+                                    style: style_match.map(|m| m.loc()),
+                                    order: order_match.map(|m| m.loc()),
                                 }),
                             },
                             issues: (!issues.is_empty()).then_some(issues),
@@ -1417,6 +1396,16 @@ impl<'i> CommentMatch<'i> {
     }
     fn content(&self) -> String {
         self.0.as_str()[1..].into()
+    }
+}
+
+fn unwrap_maybe_invalid<Valid: Into<Invalid>, Invalid, L>(
+    result: Result<Option<(Valid, L)>, (Invalid, L)>,
+) -> (Option<Invalid>, Option<L>) {
+    match result {
+        Ok(Some((valid, l))) => (Some(valid.into()), Some(l)),
+        Ok(None) => (None, None),
+        Err((invalid, l)) => (Some(invalid), Some(l)),
     }
 }
 

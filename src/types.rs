@@ -4,7 +4,7 @@ use std::{
     sync::LazyLock,
 };
 
-use regex::{Captures, Match, Regex};
+use regex::Regex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -17,6 +17,8 @@ pub struct SourcePos {
     pub column: usize,
     #[serde(rename = "idx")]
     pub index: usize,
+    #[serde(skip)]
+    pub byte_pos: usize,
 }
 
 impl Add<&str> for SourcePos {
@@ -24,6 +26,7 @@ impl Add<&str> for SourcePos {
 
     fn add(self, rhs: &str) -> SourcePos {
         let mut end = self;
+        end.byte_pos += rhs.len();
         let char_count = rhs.chars().count();
         end.index += char_count;
         end.line += rhs.bytes().filter(|&b| b == b'\n').count();
@@ -42,6 +45,7 @@ impl Add<&str> for SourcePos {
 impl AddAssign<&str> for SourcePos {
     fn add_assign(&mut self, rhs: &str) {
         let char_count = rhs.chars().count();
+        self.byte_pos += rhs.len();
         self.index += char_count;
         let newline_count = rhs.bytes().filter(|&b| b == b'\n').count();
         self.line += newline_count;
@@ -62,6 +66,7 @@ impl SourcePos {
             line: 1,
             column: 1,
             index: 0,
+            byte_pos: 0,
         }
     }
 
@@ -84,6 +89,7 @@ pub struct SourceLoc {
 impl SourceLoc {
     pub fn new(start: SourcePos, end: SourcePos) -> SourceLoc {
         assert!(start.index <= end.index);
+        assert!(start.byte_pos <= end.byte_pos);
         assert!(start.line <= end.line);
         assert!(start.line < end.line || start.column <= end.column);
         SourceLoc { start, end }
@@ -162,9 +168,9 @@ impl ParseIssue {
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct ParseMatch<'h> {
-    m: Match<'h>,
+    str: &'h str,
     start: SourcePos,
 }
 
@@ -181,7 +187,7 @@ impl<'h> ParseMatch<'h> {
     /// always safe to slice the corresponding haystack using this offset.
     #[inline]
     pub fn start(&self) -> usize {
-        self.m.start() + self.start.index
+        self.start.byte_pos
     }
 
     /// Returns the `SourcePos` of the start of the match.
@@ -203,19 +209,19 @@ impl<'h> ParseMatch<'h> {
     /// always safe to slice the corresponding haystack using this offset.
     #[inline]
     pub fn end(&self) -> usize {
-        self.m.end() + self.start.index
+        self.start.byte_pos + self.str.len()
     }
 
     /// Returns the `SourcePos` of the start of the match.
     #[inline]
     pub fn end_pos(&self) -> SourcePos {
-        self.start + self.m.as_str()
+        self.start + self.str
     }
 
     /// Returns the `SourceLoc` of the match.
     #[inline]
     pub fn loc(&self) -> SourceLoc {
-        self.start.span_of(self.m.as_str())
+        self.start.span_of(self.str)
     }
 
     /// Returns true if and only if this match has a length of zero.
@@ -226,13 +232,13 @@ impl<'h> ParseMatch<'h> {
     /// `(foo|\d+|quux)?`.
     #[inline]
     pub fn is_empty(&self) -> bool {
-        self.m.is_empty()
+        self.str.is_empty()
     }
 
     /// Returns the length, in bytes, of this match.
     #[inline]
     pub fn len(&self) -> usize {
-        self.m.len()
+        self.str.len()
     }
 
     /// Returns the range over the starting and ending byte offsets of the
@@ -249,19 +255,19 @@ impl<'h> ParseMatch<'h> {
     /// Returns the substring of the haystack that matched.
     #[inline]
     pub fn as_str(&self) -> &'h str {
-        &self.m.as_str()
+        &self.str
     }
 
     /// Creates a new `ParseState` with this match as input
     #[inline]
     pub fn reparse(&self) -> ParseState<'h> {
-        ParseState::new(self.as_str(), self.start_pos())
+        ParseState::new(&self.str, self.start)
     }
 
     /// Creates a new match from the given haystack and byte offsets.
     #[inline]
-    fn new(m: Match<'h>, start: SourcePos) -> ParseMatch<'h> {
-        ParseMatch { m, start }
+    fn new(str: &'h str, start: SourcePos) -> ParseMatch<'h> {
+        ParseMatch { str, start }
     }
 }
 
@@ -281,274 +287,33 @@ impl<'h> From<ParseMatch<'h>> for &'h str {
     }
 }
 
+impl<'h> From<ParseMatch<'h>> for String {
+    fn from(m: ParseMatch<'h>) -> String {
+        m.as_str().into()
+    }
+}
+
+impl<'h> From<ParseMatch<'h>> for Option<String> {
+    fn from(m: ParseMatch<'h>) -> Option<String> {
+        Some(m.as_str().into())
+    }
+}
+
+impl<'h> From<ParseMatch<'h>> for SourceLoc {
+    fn from(m: ParseMatch<'h>) -> SourceLoc {
+        m.loc()
+    }
+}
+
+impl<'h> From<ParseMatch<'h>> for Option<SourceLoc> {
+    fn from(m: ParseMatch<'h>) -> Option<SourceLoc> {
+        Some(m.loc())
+    }
+}
+
 impl<'h> From<ParseMatch<'h>> for core::ops::Range<usize> {
     fn from(m: ParseMatch<'h>) -> core::ops::Range<usize> {
         m.range()
-    }
-}
-
-pub struct ParseCaptures<'h> {
-    captures: Captures<'h>,
-    start: SourcePos,
-}
-
-impl<'h> ParseCaptures<'h> {
-    /// Returns the `Match` associated with the capture group at index `i`. If
-    /// `i` does not correspond to a capture group, or if the capture group did
-    /// not participate in the match, then `None` is returned.
-    ///
-    /// When `i == 0`, this is guaranteed to return a non-`None` value.
-    ///
-    /// # Examples
-    ///
-    /// Get the substring that matched with a default of an empty string if the
-    /// group didn't participate in the match:
-    ///
-    /// ```
-    /// use regex::Regex;
-    ///
-    /// let re = Regex::new(r"[a-z]+(?:([0-9]+)|([A-Z]+))").unwrap();
-    /// let caps = re.captures("abc123").unwrap();
-    ///
-    /// let substr1 = caps.get(1).map_or("", |m| m.as_str());
-    /// let substr2 = caps.get(2).map_or("", |m| m.as_str());
-    /// assert_eq!(substr1, "123");
-    /// assert_eq!(substr2, "");
-    /// ```
-    #[inline]
-    pub fn get(&self, i: usize) -> Option<ParseMatch<'h>> {
-        match self.captures.get(i) {
-            Some(m) => Some(ParseMatch::new(
-                m,
-                self.start + &self.get_match().as_str()[0..m.start()],
-            )),
-            None => None,
-        }
-    }
-
-    /// Return the overall match for the capture.
-    ///
-    /// This returns the match for index `0`. That is it is equivalent to
-    /// `m.get(0).unwrap()`
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use regex::Regex;
-    ///
-    /// let re = Regex::new(r"[a-z]+([0-9]+)").unwrap();
-    /// let caps = re.captures("   abc123-def").unwrap();
-    ///
-    /// assert_eq!(caps.get_match().as_str(), "abc123");
-    ///
-    /// ```
-    #[inline]
-    pub fn get_match(&self) -> ParseMatch<'h> {
-        let m = self.captures.get(0).unwrap();
-        ParseMatch::new(m, self.start)
-    }
-
-    /// Returns the `Match` associated with the capture group named `name`. If
-    /// `name` isn't a valid capture group or it refers to a group that didn't
-    /// match, then `None` is returned.
-    ///
-    /// Note that unlike `caps["name"]`, this returns a `Match` whose lifetime
-    /// matches the lifetime of the haystack in this `Captures` value.
-    /// Conversely, the substring returned by `caps["name"]` has a lifetime
-    /// of the `Captures` value, which is likely shorter than the lifetime of
-    /// the haystack. In some cases, it may be necessary to use this method to
-    /// access the matching substring instead of the `caps["name"]` notation.
-    ///
-    /// # Examples
-    ///
-    /// Get the substring that matched with a default of an empty string if the
-    /// group didn't participate in the match:
-    ///
-    /// ```
-    /// use regex::Regex;
-    ///
-    /// let re = Regex::new(
-    ///     r"[a-z]+(?:(?<numbers>[0-9]+)|(?<letters>[A-Z]+))",
-    /// ).unwrap();
-    /// let caps = re.captures("abc123").unwrap();
-    ///
-    /// let numbers = caps.name("numbers").map_or("", |m| m.as_str());
-    /// let letters = caps.name("letters").map_or("", |m| m.as_str());
-    /// assert_eq!(numbers, "123");
-    /// assert_eq!(letters, "");
-    /// ```
-    #[inline]
-    pub fn name(&self, name: &str) -> Option<ParseMatch<'h>> {
-        match self.captures.name(name) {
-            Some(m) => Some(ParseMatch::new(
-                m,
-                self.start + &self.get_match().as_str()[0..m.start()],
-            )),
-            None => None,
-        }
-    }
-
-    /// This is a convenience routine for extracting the substrings
-    /// corresponding to matching capture groups.
-    ///
-    /// This returns a tuple where the first element corresponds to the full
-    /// substring of the haystack that matched the regex. The second element is
-    /// an array of substrings, with each corresponding to the substring that
-    /// matched for a particular capture group.
-    ///
-    /// # Panics
-    ///
-    /// This panics if the number of possible matching groups in this
-    /// `Captures` value is not fixed to `N` in all circumstances.
-    /// More precisely, this routine only works when `N` is equivalent to
-    /// [`Regex::static_captures_len`].
-    ///
-    /// Stated more plainly, if the number of matching capture groups in a
-    /// regex can vary from match to match, then this function always panics.
-    ///
-    /// For example, `(a)(b)|(c)` could produce two matching capture groups
-    /// or one matching capture group for any given match. Therefore, one
-    /// cannot use `extract` with such a pattern.
-    ///
-    /// But a pattern like `(a)(b)|(c)(d)` can be used with `extract` because
-    /// the number of capture groups in every match is always equivalent,
-    /// even if the capture _indices_ in each match are not.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use regex::Regex;
-    ///
-    /// let re = Regex::new(r"([0-9]{4})-([0-9]{2})-([0-9]{2})").unwrap();
-    /// let hay = "On 2010-03-14, I became a Tennessee lamb.";
-    /// let Some((full, [year, month, day])) =
-    ///     re.captures(hay).map(|caps| caps.extract()) else { return };
-    /// assert_eq!("2010-03-14", full);
-    /// assert_eq!("2010", year);
-    /// assert_eq!("03", month);
-    /// assert_eq!("14", day);
-    /// ```
-    ///
-    /// # Example: iteration
-    ///
-    /// This example shows how to use this method when iterating over all
-    /// `Captures` matches in a haystack.
-    ///
-    /// ```
-    /// use regex::Regex;
-    ///
-    /// let re = Regex::new(r"([0-9]{4})-([0-9]{2})-([0-9]{2})").unwrap();
-    /// let hay = "1973-01-05, 1975-08-25 and 1980-10-18";
-    ///
-    /// let mut dates: Vec<(&str, &str, &str)> = vec![];
-    /// for (_, [y, m, d]) in re.captures_iter(hay).map(|c| c.extract()) {
-    ///     dates.push((y, m, d));
-    /// }
-    /// assert_eq!(dates, vec![
-    ///     ("1973", "01", "05"),
-    ///     ("1975", "08", "25"),
-    ///     ("1980", "10", "18"),
-    /// ]);
-    /// ```
-    ///
-    /// # Example: parsing different formats
-    ///
-    /// This API is particularly useful when you need to extract a particular
-    /// value that might occur in a different format. Consider, for example,
-    /// an identifier that might be in double quotes or single quotes:
-    ///
-    /// ```
-    /// use regex::Regex;
-    ///
-    /// let re = Regex::new(r#"id:(?:"([^"]+)"|'([^']+)')"#).unwrap();
-    /// let hay = r#"The first is id:"foo" and the second is id:'bar'."#;
-    /// let mut ids = vec![];
-    /// for (_, [id]) in re.captures_iter(hay).map(|c| c.extract()) {
-    ///     ids.push(id);
-    /// }
-    /// assert_eq!(ids, vec!["foo", "bar"]);
-    /// ```
-    pub fn extract<const N: usize>(&self) -> (&'h str, [&'h str; N]) {
-        self.captures.extract()
-    }
-
-    /// Expands all instances of `$ref` in `replacement` to the corresponding
-    /// capture group, and writes them to the `dst` buffer given. A `ref` can
-    /// be a capture group index or a name. If `ref` doesn't refer to a capture
-    /// group that participated in the match, then it is replaced with the
-    /// empty string.
-    ///
-    /// # Format
-    ///
-    /// The format of the replacement string supports two different kinds of
-    /// capture references: unbraced and braced.
-    ///
-    /// For the unbraced format, the format supported is `$ref` where `name`
-    /// can be any character in the class `[0-9A-Za-z_]`. `ref` is always
-    /// the longest possible parse. So for example, `$1a` corresponds to the
-    /// capture group named `1a` and not the capture group at index `1`. If
-    /// `ref` matches `^[0-9]+$`, then it is treated as a capture group index
-    /// itself and not a name.
-    ///
-    /// For the braced format, the format supported is `${ref}` where `ref` can
-    /// be any sequence of bytes except for `}`. If no closing brace occurs,
-    /// then it is not considered a capture reference. As with the unbraced
-    /// format, if `ref` matches `^[0-9]+$`, then it is treated as a capture
-    /// group index and not a name.
-    ///
-    /// The braced format is useful for exerting precise control over the name
-    /// of the capture reference. For example, `${1}a` corresponds to the
-    /// capture group reference `1` followed by the letter `a`, where as `$1a`
-    /// (as mentioned above) corresponds to the capture group reference `1a`.
-    /// The braced format is also useful for expressing capture group names
-    /// that use characters not supported by the unbraced format. For example,
-    /// `${foo[bar].baz}` refers to the capture group named `foo[bar].baz`.
-    ///
-    /// If a capture group reference is found and it does not refer to a valid
-    /// capture group, then it will be replaced with the empty string.
-    ///
-    /// To write a literal `$`, use `$$`.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use regex::Regex;
-    ///
-    /// let re = Regex::new(
-    ///     r"(?<day>[0-9]{2})-(?<month>[0-9]{2})-(?<year>[0-9]{4})",
-    /// ).unwrap();
-    /// let hay = "On 14-03-2010, I became a Tennessee lamb.";
-    /// let caps = re.captures(hay).unwrap();
-    ///
-    /// let mut dst = String::new();
-    /// caps.expand("year=$year, month=$month, day=$day", &mut dst);
-    /// assert_eq!(dst, "year=2010, month=03, day=14");
-    /// ```
-    #[inline]
-    pub fn expand(&self, replacement: &str, dst: &mut String) {
-        self.captures.expand(replacement, dst)
-    }
-
-    /// Returns the total number of capture groups. This includes both
-    /// matching and non-matching groups.
-    ///
-    /// The length returned is always equivalent to the number of elements
-    /// yielded by [`Captures::iter`]. Consequently, the length is always
-    /// greater than zero since every `Captures` value always includes the
-    /// match for the entire regex.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use regex::Regex;
-    ///
-    /// let re = Regex::new(r"(\w)(\d)?(\w)").unwrap();
-    /// let caps = re.captures("AZ").unwrap();
-    /// assert_eq!(caps.len(), 4);
-    /// ```
-    #[inline]
-    pub fn len(&self) -> usize {
-        self.captures.len()
     }
 }
 
@@ -596,7 +361,7 @@ impl<'i> ParseState<'i> {
     pub fn peek(&self, regex: &Regex) -> Option<ParseMatch<'i>> {
         check_parse_regex(regex);
         match regex.find(&self.input[self.index..]) {
-            Some(m) => Some(ParseMatch::new(m, self.pos)),
+            Some(m) => Some(ParseMatch::new(m.as_str(), self.pos)),
             None => None,
         }
     }
@@ -623,30 +388,9 @@ impl<'i> ParseState<'i> {
         check_parse_regex(regex);
         match regex.find(&self.input[self.index..]) {
             Some(m) => {
-                let result = Some(ParseMatch::new(m, self.pos));
+                let result = Some(ParseMatch::new(m.as_str(), self.pos));
                 self.index += m.end();
                 self.pos += m.as_str();
-                result
-            }
-            None => None,
-        }
-    }
-
-    /// Returns a capture if `regex` (which must start with ^) matches at
-    /// the current parse index, and advances the parse index to the end
-    /// of the match.
-    pub fn captures(&mut self, regex: &Regex) -> Option<ParseCaptures<'i>> {
-        check_parse_regex(regex);
-        match regex.captures(&self.input[self.index..]) {
-            Some(c) => {
-                let match_ = c.get_match();
-                let end = match_.end();
-                let result = Some(ParseCaptures {
-                    captures: c,
-                    start: self.pos,
-                });
-                self.index += end;
-                self.pos += match_.as_str();
                 result
             }
             None => None,
@@ -669,7 +413,8 @@ mod tests {
             SourcePos {
                 line: 2,
                 column: 1,
-                index: 1
+                index: 1,
+                byte_pos: 1,
             }
         );
         assert_eq!(
@@ -677,7 +422,8 @@ mod tests {
             SourcePos {
                 line: 2,
                 column: 1,
-                index: 2
+                index: 2,
+                byte_pos: 2,
             }
         );
 
@@ -686,7 +432,8 @@ mod tests {
             SourcePos {
                 line: 1,
                 column: 7,
-                index: 6
+                index: 6,
+                byte_pos: 6,
             }
         );
 
@@ -695,7 +442,8 @@ mod tests {
             SourcePos {
                 line: 2,
                 column: 4,
-                index: 7
+                index: 7,
+                byte_pos: 7,
             }
         );
 
@@ -704,7 +452,8 @@ mod tests {
             SourcePos {
                 line: 3,
                 column: 4,
-                index: 8
+                index: 8,
+                byte_pos: 8,
             }
         );
 
@@ -713,7 +462,8 @@ mod tests {
             SourcePos {
                 line: 4,
                 column: 2,
-                index: 9
+                index: 9,
+                byte_pos: 9
             }
         );
 
@@ -722,11 +472,13 @@ mod tests {
                 line: 10,
                 column: 5,
                 index: 8,
+                byte_pos: 8,
             } + "foobar",
             SourcePos {
                 line: 10,
                 column: 11,
-                index: 14
+                index: 14,
+                byte_pos: 14
             }
         );
 
@@ -735,11 +487,13 @@ mod tests {
                 line: 10,
                 column: 5,
                 index: 8,
+                byte_pos: 8
             } + "foo\n\nba\nr",
             SourcePos {
                 line: 13,
                 column: 2,
-                index: 17
+                index: 17,
+                byte_pos: 17
             }
         );
     }
@@ -753,21 +507,20 @@ mod tests {
         };
 
         let foo = Regex::new(r"^foo").unwrap();
+        let bar = Regex::new(r"^bar").unwrap();
 
         let m = p.find(&foo);
         assert_eq!(m.map(|m| m.as_str()), Some("foo"));
 
         let m = p.find(&foo);
         assert_eq!(m.is_some(), false);
-        assert_eq!(p.index(), 3);
-
-        let c = p.captures(&Regex::new(r"^b(..)").unwrap()).unwrap();
-        assert_eq!(c.get_match().as_str(), "bar");
-        assert_eq!(c.get(1).unwrap().as_str(), "ar");
+        assert_eq!(p.pos().byte_pos, 3);
 
         let m = p.find(&foo);
         assert_eq!(m.is_some(), false);
 
+        let m = p.find(&bar);
+        assert_eq!(m.is_some(), true);
         assert_eq!(p.is_done(), true);
     }
 }

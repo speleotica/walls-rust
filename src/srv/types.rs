@@ -299,6 +299,12 @@ pub enum MaybeValidLrudOrder {
     },
 }
 
+impl Into<MaybeValidLrudOrder> for [LrudItem; 4] {
+    fn into(self) -> MaybeValidLrudOrder {
+        MaybeValidLrudOrder::Valid(self)
+    }
+}
+
 #[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
