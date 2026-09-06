@@ -175,6 +175,13 @@ pub struct ParseMatch<'h> {
 }
 
 impl<'h> ParseMatch<'h> {
+    pub fn slice(&self, start: usize, end: usize) -> ParseMatch<'h> {
+        ParseMatch {
+            str: &self.str[start..end],
+            start: self.start + &self.str[0..start],
+        }
+    }
+
     /// Returns the byte offset of the start of the match in the haystack. The
     /// start of the match corresponds to the position where the match begins
     /// and includes the first byte in the match.

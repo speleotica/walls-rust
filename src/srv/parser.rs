@@ -152,14 +152,12 @@ impl<'i> WallsSrvParser<'i> {
         while self.skip_whitespace() {
             if let Some(m) = self.find(&UNITS_OPTION) {
                 let option = match m.as_str().to_ascii_lowercase().as_str() {
-                    "ct" => UnitsOption::CompassAndTape { loc: Some(m.loc()) }.into(),
+                    "ct" => UnitsOption::CompassAndTape { loc: m.into() }.into(),
                     "rect" => self.rect_option(m),
                     "order" => self.order_option(m),
-                    "f" | "feet" => {
-                        UnitsOption::distance_unit(LengthUnit::Feet, Some(m.loc())).into()
-                    }
+                    "f" | "feet" => UnitsOption::distance_unit(LengthUnit::Feet, m.into()).into(),
                     "m" | "meters" => {
-                        UnitsOption::distance_unit(LengthUnit::Meters, Some(m.loc())).into()
+                        UnitsOption::distance_unit(LengthUnit::Meters, m.into()).into()
                     }
                     "d" => self.distance_unit(
                         m,
@@ -247,10 +245,10 @@ impl<'i> WallsSrvParser<'i> {
                     ),
                     "typeab" => todo!(),
                     "typevb" => todo!(),
-                    "reset" => UnitsOption::Reset { loc: Some(m.loc()) }.into(),
-                    "save" => UnitsOption::Save { loc: Some(m.loc()) }.into(),
+                    "reset" => UnitsOption::Reset { loc: m.into() }.into(),
+                    "save" => UnitsOption::Save { loc: m.into() }.into(),
                     // TODO: error when saved_settings stack is empty?
-                    "restore" => UnitsOption::Restore { loc: Some(m.loc()) }.into(),
+                    "restore" => UnitsOption::Restore { loc: m.into() }.into(),
                     "case" => self.station_name_case_option(
                         m,
                         UnitsOption::station_name_case,
@@ -301,7 +299,7 @@ impl<'i> WallsSrvParser<'i> {
                     issues.push(self.push_error(
                         EUNEXPECTED,
                         Some("Unexpected #UNITS option value".into()),
-                        Some(m.loc()),
+                        m.into(),
                     ));
                 } else {
                     options.push(
@@ -410,7 +408,7 @@ impl<'i> WallsSrvParser<'i> {
                             invalid(
                                 Some(value.as_str().into()),
                                 option.loc(),
-                                Some(value.loc().start.up_to(parser.pos())),
+                                Some(value.start_pos().up_to(parser.pos())),
                             )
                             .with_issue(self.push_issue(e))
                         },
@@ -418,7 +416,7 @@ impl<'i> WallsSrvParser<'i> {
                             valid(
                                 parsed,
                                 option.loc(),
-                                Some(value.loc().start.up_to(parser.pos())),
+                                Some(value.start_pos().up_to(parser.pos())),
                             )
                             .into()
                         },
@@ -434,10 +432,7 @@ impl<'i> WallsSrvParser<'i> {
     }
     fn rect_option(&mut self, option: ParseMatch<'i>) -> MaybeValidUnitsOption {
         if !self.is_match(&UNITS_OPTION_EQUALS) {
-            return UnitsOption::Rectilinear {
-                loc: Some(option.loc()),
-            }
-            .into();
+            return UnitsOption::Rectilinear { loc: option.into() }.into();
         }
         let start = self.pos();
         if let Some(value) = self.find(&UNITS_OPTION_VALUE) {
@@ -455,7 +450,7 @@ impl<'i> WallsSrvParser<'i> {
                 Ok(None) => MaybeValidUnitsOption::Invalid {
                     invalid: InvalidUnitsOption::RectilinearNorthCorrection {
                         correction: None,
-                        loc: Some(option.start_pos().up_to(parser.rest().loc().end)),
+                        loc: Some(option.start_pos().up_to(parser.rest().end_pos())),
                         locs: Some(CorrectionOptionLocs {
                             option: option.loc(),
                             correction: Some(value.loc()),
@@ -473,7 +468,7 @@ impl<'i> WallsSrvParser<'i> {
                         loc: Some(option.start_pos().up_to(parser.pos())),
                         locs: Some(CorrectionOptionLocs {
                             option: option.loc(),
-                            correction: Some(start.up_to(parser.pos()).into()),
+                            correction: Some(start.up_to(parser.pos())),
                         }),
                     },
                     issues: Some(vec![self.push_issue(err.into())]),
@@ -517,7 +512,7 @@ impl<'i> WallsSrvParser<'i> {
                                 })
                                 .collect(),
                             option.loc(),
-                            Some(value.loc()),
+                            value.into(),
                         )
                         .into()
                     }
@@ -534,7 +529,7 @@ impl<'i> WallsSrvParser<'i> {
                                 })
                                 .collect(),
                             option.loc(),
-                            Some(value.loc()),
+                            value.into(),
                         )
                         .into()
                     }
@@ -550,19 +545,11 @@ impl<'i> WallsSrvParser<'i> {
                                 'u' => OrderItem::Elevation.into(),
                                 invalid => MaybeValidOrderItem::Invalid(InvalidValue {
                                     invalid: invalid.into(),
-                                    issues: Some(vec![
-                                        self.push_error(
-                                            EINVALIDORDERITEM,
-                                            Some("Invalid measurement item".into()),
-                                            Some(
-                                                (value.loc().start + &value.as_str()[0..byte_pos])
-                                                    .span_of(
-                                                        &value.as_str()
-                                                            [byte_pos..byte_pos + c.len_utf8()],
-                                                    ),
-                                            ),
-                                        ),
-                                    ]),
+                                    issues: Some(vec![self.push_error(
+                                        EINVALIDORDERITEM,
+                                        Some("Invalid measurement item".into()),
+                                        value.slice(byte_pos, byte_pos + c.len_utf8()).into(),
+                                    )]),
                                 }),
                             })
                             .collect();
@@ -580,7 +567,7 @@ impl<'i> WallsSrvParser<'i> {
                                 vec![self.push_error(
                                     EINVALIDMEASUREMENTORDER,
                                     Some("Invalid measurement order".into()),
-                                    Some(value.loc()),
+                                    value.into(),
                                 )]
                             }),
                         }
@@ -670,7 +657,7 @@ impl<'i> WallsSrvParser<'i> {
                     _ => Err(ParseIssue::error(
                         EINVALIDINCLINATIONUNIT,
                         Some("Invalid inclination unit".into()),
-                        Some(value.loc()),
+                        value.into(),
                     )),
                 }
             },
@@ -693,7 +680,7 @@ impl<'i> WallsSrvParser<'i> {
                 Ok(None) => Err(ParseIssue::error(
                     EINVALIDLENGTH,
                     Some("Invalid length".into()),
-                    Some(p.rest().loc()),
+                    p.rest().into(),
                 )),
                 Err(e) => Err(e.into()),
             },
@@ -716,7 +703,7 @@ impl<'i> WallsSrvParser<'i> {
                 Ok(None) => Err(ParseIssue::error(
                     EINVALIDANGLE,
                     Some("Invalid angle".into()),
-                    Some(p.rest().loc()),
+                    p.rest().into(),
                 )),
                 Err(e) => Err(e.into()),
             },
@@ -739,7 +726,7 @@ impl<'i> WallsSrvParser<'i> {
                 Ok(None) => Err(ParseIssue::error(
                     EINVALIDAZIMUTH,
                     Some("Invalid azimuth".into()),
-                    Some(p.rest().loc()),
+                    p.rest().into(),
                 )),
                 Err(e) => Err(e.into()),
             },
@@ -762,7 +749,7 @@ impl<'i> WallsSrvParser<'i> {
                 Ok(None) => Err(ParseIssue::error(
                     EINVALIDINCLINATION,
                     Some("Invalid inclination".into()),
-                    Some(p.rest().loc()),
+                    p.rest().into(),
                 )),
                 Err(e) => Err(e.into()),
             },
@@ -788,7 +775,7 @@ impl<'i> WallsSrvParser<'i> {
                     _ => Err(ParseIssue::error(
                         EINVALIDCASECONVERSION,
                         Some("Invalid case conversion".into()),
-                        Some(value.loc()),
+                        value.into(),
                     )),
                 }
             },
@@ -815,7 +802,7 @@ impl<'i> WallsSrvParser<'i> {
                     _ => Err(ParseIssue::error(
                         EINVALIDTAPINGMETHOD,
                         Some("Invalid taping method".into()),
-                        Some(value.loc()),
+                        value.into(),
                     )),
                 }
             },
@@ -837,7 +824,7 @@ impl<'i> WallsSrvParser<'i> {
                 None | Some(Err(_)) => Err(ParseIssue::error(
                     EINVALIDUNITVARIANCE,
                     Some("Invalid unit variance".into()),
-                    Some(p.rest().loc()),
+                    p.rest().into(),
                 )),
             },
             valid,
@@ -901,11 +888,7 @@ impl<'i> WallsSrvParser<'i> {
                                         issues: Some(vec![self.push_error(
                                             EINVALIDLRUDORDERITEM,
                                             Some("Invalid LRUD order item".into()),
-                                            Some(
-                                                (m.start_pos() + &m.as_str()[0..byte_pos]).span_of(
-                                                    &m.as_str()[byte_pos..byte_pos + c.len_utf8()],
-                                                ),
-                                            ),
+                                            m.slice(byte_pos, byte_pos + c.len_utf8()).into(),
                                         )]),
                                     }),
                                 })
@@ -1055,11 +1038,7 @@ impl<'i> WallsSrvParser<'i> {
         self.skip_whitespace();
         let comment = self.find(&INLINE_COMMENT);
         if let Some(m) = self.find(&CHARACTER) {
-            self.push_error(
-                EUNEXPECTED,
-                Some("Unexpected character".into()),
-                Some(m.loc()),
-            );
+            self.push_error(EUNEXPECTED, Some("Unexpected character".into()), m.into());
         }
         comment.and_then(|m| Some(CommentMatch(m)))
     }
