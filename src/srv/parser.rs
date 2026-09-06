@@ -33,11 +33,7 @@ const WHITESPACE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\s+").unwrap(
 const DIRECTIVE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)#[a-z]+[0-9]*").unwrap());
 const INLINE_COMMENT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^;\s*(.+)").unwrap());
 const CHARACTER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\S").unwrap());
-const LENGTH_UNIT_SUFFIX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)[mfi]").unwrap());
 const INCHES_SUFFIX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)i").unwrap());
-const AZIMUTH_UNIT_SUFFIX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)[dgm]").unwrap());
-const INCLINATION_UNIT_SUFFIX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^(?i)[dgmp]").unwrap());
 const NAME: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[^:;,#\s]+").unwrap());
 const COLON: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^:").unwrap());
 const LETTER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)[a-z]").unwrap());
@@ -47,8 +43,6 @@ const UNEXPECTED_AFTER_UNITS_OPTION: LazyLock<Regex> =
 const UNITS_OPTION_EQUALS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\s*=\s*").unwrap());
 const UNITS_OPTION_VALUE: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[^;#=\"\\s]+").unwrap());
 const SIGN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[-+]").unwrap());
-const SIGNED_INTEGER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[-+]?\d+").unwrap());
-const UNSIGNED_INTEGER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d+").unwrap());
 const SIGNED_NUMBER: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[-+]?(\d+(\.\d*)?|\.\d+)").unwrap());
 const UNSIGNED_NUMBER: LazyLock<Regex> =
