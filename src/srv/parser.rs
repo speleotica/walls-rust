@@ -550,13 +550,19 @@ impl<'i> WallsSrvParser<'i> {
                                 'u' => OrderItem::Elevation.into(),
                                 invalid => MaybeValidOrderItem::Invalid(InvalidValue {
                                     invalid: invalid.into(),
-                                    issues: Some(vec![self.push_error(
-                                        EINVALIDORDERITEM,
-                                        Some("Invalid measurement item".into()),
-                                        Some(value.loc().start.up_to(
-                                            value.loc().start + &value.as_str()[0..byte_pos],
-                                        )),
-                                    )]),
+                                    issues: Some(vec![
+                                        self.push_error(
+                                            EINVALIDORDERITEM,
+                                            Some("Invalid measurement item".into()),
+                                            Some(
+                                                (value.loc().start + &value.as_str()[0..byte_pos])
+                                                    .span_of(
+                                                        &value.as_str()
+                                                            [byte_pos..byte_pos + c.len_utf8()],
+                                                    ),
+                                            ),
+                                        ),
+                                    ]),
                                 }),
                             })
                             .collect();
@@ -895,9 +901,11 @@ impl<'i> WallsSrvParser<'i> {
                                         issues: Some(vec![self.push_error(
                                             EINVALIDLRUDORDERITEM,
                                             Some("Invalid LRUD order item".into()),
-                                            Some((m.start_pos() + &m.as_str()[0..byte_pos]).up_to(
-                                                m.start_pos() + &m.as_str()[0..byte_pos + 1],
-                                            )),
+                                            Some(
+                                                (m.start_pos() + &m.as_str()[0..byte_pos]).span_of(
+                                                    &m.as_str()[byte_pos..byte_pos + c.len_utf8()],
+                                                ),
+                                            ),
                                         )]),
                                     }),
                                 })

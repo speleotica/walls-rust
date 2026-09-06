@@ -25,6 +25,6 @@ INVALID:
         type: UnitsDirective
 issues:
   - code: EINVALIDORDERITEM
-    loc: da
+    loc: q
     message: Invalid measurement item
     severity: Error
