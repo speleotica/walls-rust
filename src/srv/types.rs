@@ -243,6 +243,24 @@ pub enum MaybeValidLrudStyle {
     Invalid(InvalidValue),
 }
 
+impl From<Result<LrudStyle, InvalidValue>> for MaybeValidLrudStyle {
+    fn from(value: Result<LrudStyle, InvalidValue>) -> Self {
+        match value {
+            Ok(valid) => valid.into(),
+            Err(invalid) => invalid.into(),
+        }
+    }
+}
+
+impl Into<Result<LrudStyle, InvalidValue>> for MaybeValidLrudStyle {
+    fn into(self) -> Result<LrudStyle, InvalidValue> {
+        match self {
+            MaybeValidLrudStyle::Valid(valid) => Ok(valid),
+            MaybeValidLrudStyle::Invalid(invalid) => Err(invalid),
+        }
+    }
+}
+
 impl Into<MaybeValidLrudStyle> for LrudStyle {
     fn into(self) -> MaybeValidLrudStyle {
         MaybeValidLrudStyle::Valid(self)
@@ -302,6 +320,24 @@ pub enum MaybeValidLrudOrder {
 impl Into<MaybeValidLrudOrder> for [LrudItem; 4] {
     fn into(self) -> MaybeValidLrudOrder {
         MaybeValidLrudOrder::Valid(self)
+    }
+}
+
+impl From<Result<[LrudItem; 4], MaybeValidLrudOrder>> for MaybeValidLrudOrder {
+    fn from(result: Result<[LrudItem; 4], MaybeValidLrudOrder>) -> MaybeValidLrudOrder {
+        match result {
+            Ok(valid) => valid.into(),
+            Err(invalid) => invalid,
+        }
+    }
+}
+
+impl Into<Result<[LrudItem; 4], MaybeValidLrudOrder>> for MaybeValidLrudOrder {
+    fn into(self) -> Result<[LrudItem; 4], MaybeValidLrudOrder> {
+        match self {
+            MaybeValidLrudOrder::Valid(valid) => Ok(valid),
+            invalid => Err(invalid),
+        }
     }
 }
 

@@ -852,15 +852,20 @@ impl<'i> WallsSrvParser<'i> {
 
                 let mut issues: Vec<usize> = Vec::new();
 
-                let style =
-                    p.find(&UNITS_OPTION)
-                        .map(|m| match m.as_str().to_ascii_lowercase().as_str() {
-                            "f" => Ok((LrudStyle::FromStationPerpendicular.into(), m)),
-                            "t" => Ok((LrudStyle::ToStationPerpendicular.into(), m)),
-                            "fb" => Ok((LrudStyle::FromStationBisector.into(), m)),
-                            "tb" => Ok((LrudStyle::ToStationBisector.into(), m)),
-                            _ => Err((
-                                MaybeValidLrudStyle::Invalid(InvalidValue {
+                let x: Option<MaybeValidLrudStyle> = None;
+
+                let y = x.map(|x| x.into()).transpose();
+
+                let (style, style_loc) = p
+                    .find(&UNITS_OPTION)
+                    .map(|m| {
+                        (
+                            match m.as_str().to_ascii_lowercase().as_str() {
+                                "f" => LrudStyle::FromStationPerpendicular.into(),
+                                "t" => LrudStyle::ToStationPerpendicular.into(),
+                                "fb" => LrudStyle::FromStationBisector.into(),
+                                "tb" => LrudStyle::ToStationBisector.into(),
+                                _ => MaybeValidLrudStyle::Invalid(InvalidValue {
                                     invalid: m.as_str().into(),
                                     issues: Some(vec![self.push_error(
                                         EINVALIDLRUDSTYLE,
@@ -868,9 +873,11 @@ impl<'i> WallsSrvParser<'i> {
                                         Some(m.loc()),
                                     )]),
                                 }),
-                                m,
-                            )),
-                        });
+                            },
+                            m.loc(),
+                        )
+                    })
+                    .unzip();
 
                 if style.is_none() {
                     issues.push(self.push_error(
@@ -880,7 +887,7 @@ impl<'i> WallsSrvParser<'i> {
                     ));
                 }
 
-                let order = match p.is_match(&COLON) {
+                let (order, order_loc) = match p.is_match(&COLON) {
                     true => p
                         .find(&UNITS_OPTION)
                         .map(|m| {
@@ -909,13 +916,13 @@ impl<'i> WallsSrvParser<'i> {
                                 .iter()
                                 .all(|i| matches!(i, MaybeValidLrudItem::Valid(_)))
                             {
-                                Err((
+                                (
                                     MaybeValidLrudOrder::Invalid {
                                         invalid: order,
                                         issues: None,
                                     },
-                                    m,
-                                ))
+                                    m.loc(),
+                                )
                             } else if order.len() == 4
                                 && order.contains(&LrudItem::Left.into())
                                 && order.contains(&LrudItem::Right.into())
@@ -929,9 +936,9 @@ impl<'i> WallsSrvParser<'i> {
                                         _ => unreachable!(),
                                     })
                                     .collect();
-                                Ok(([valid[0], valid[1], valid[2], valid[3]], m))
+                                ([valid[0], valid[1], valid[2], valid[3]].into(), m.loc())
                             } else {
-                                Err((
+                                (
                                     MaybeValidLrudOrder::Invalid {
                                         invalid: order,
                                         issues: Some(vec![self.push_error(
@@ -940,8 +947,8 @@ impl<'i> WallsSrvParser<'i> {
                                             Some(m.loc()),
                                         )]),
                                     },
-                                    m,
-                                ))
+                                    m.loc(),
+                                )
                             }
                         })
                         .or_else(|| {
@@ -953,40 +960,39 @@ impl<'i> WallsSrvParser<'i> {
                             None
                         }),
                     false => None,
-                };
+                }
+                .unzip();
 
-                match (style.transpose(), order.transpose()) {
-                    (Ok(Some((style, style_match))), Ok(order)) => {
-                        let (order, order_match) = order.unzip();
+                match (
+                    style.map(|s| s.into()).transpose(),
+                    order.map(|o| o.into()).transpose(),
+                ) {
+                    (Ok(Some(style)), Ok(order)) => {
                         UnitsOption::Lrud {
                             style,
                             order,
                             loc: Some(option.start_pos().up_to(p.pos())),
                             locs: Some(LrudOptionLocs {
                                 option: option.loc(),
-                                style: style_match.into(),
-                                order: order_match.map(|m| m.loc()),
+                                style: style_loc,
+                                order: order_loc,
                             }),
                         }
                     }
                     .into(),
-                    (style, order) => {
-                        let (style, style_match) = unwrap_maybe_invalid(style);
-                        let (order, order_match) = unwrap_maybe_invalid(order);
-                        MaybeValidUnitsOption::Invalid {
-                            invalid: InvalidUnitsOption::Lrud {
-                                style,
-                                order,
-                                loc: Some(option.start_pos().up_to(p.pos())),
-                                locs: Some(LrudOptionLocs {
-                                    option: option.loc(),
-                                    style: style_match.map(|m| m.loc()),
-                                    order: order_match.map(|m| m.loc()),
-                                }),
-                            },
-                            issues: (!issues.is_empty()).then_some(issues),
-                        }
-                    }
+                    (style, order) => MaybeValidUnitsOption::Invalid {
+                        invalid: InvalidUnitsOption::Lrud {
+                            style: style.transpose().map(|s| s.into()),
+                            order: order.transpose().map(|o| o.into()),
+                            loc: Some(option.start_pos().up_to(p.pos())),
+                            locs: Some(LrudOptionLocs {
+                                option: option.loc(),
+                                style: style_loc,
+                                order: order_loc,
+                            }),
+                        },
+                        issues: (!issues.is_empty()).then_some(issues),
+                    },
                 }
             }
             Err(issue) => MaybeValidUnitsOption::Invalid {
@@ -1399,13 +1405,13 @@ impl<'i> CommentMatch<'i> {
     }
 }
 
-fn unwrap_maybe_invalid<Valid: Into<Invalid>, Invalid, L>(
-    result: Result<Option<(Valid, L)>, (Invalid, L)>,
-) -> (Option<Invalid>, Option<L>) {
+fn unwrap_maybe_valid<Valid: Into<MaybeValid>, MaybeValid>(
+    result: Result<Option<Valid>, MaybeValid>,
+) -> Option<MaybeValid> {
     match result {
-        Ok(Some((valid, l))) => (Some(valid.into()), Some(l)),
-        Ok(None) => (None, None),
-        Err((invalid, l)) => (Some(invalid), Some(l)),
+        Ok(Some(valid)) => Some(valid.into()),
+        Ok(None) => None,
+        Err(invalid) => Some(invalid),
     }
 }
 
