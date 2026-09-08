@@ -4,18 +4,20 @@ use std::{num::ParseFloatError, sync::LazyLock};
 
 use crate::{
     srv::types::{
-        Angle, AngleUnit, CompassAndTapeItem, CorrectionOptionLocs, EINCLINATIONOUTOFRANGE,
-        EINVALIDANGLE, EINVALIDANGLEUNIT, EINVALIDAZIMUTH, EINVALIDAZIMUTHUNIT,
-        EINVALIDCASECONVERSION, EINVALIDDIRECTIVE, EINVALIDINCLINATION, EINVALIDINCLINATIONUNIT,
+        Angle, AngleUnit, BacksightOptions, BacksightOptionsLocs, CompassAndTapeItem,
+        CorrectionOptionLocs, EINCLINATIONOUTOFRANGE, EINVALIDANGLE, EINVALIDANGLEUNIT,
+        EINVALIDAZIMUTH, EINVALIDAZIMUTHUNIT, EINVALIDBACKSIGHTCORRECTED, EINVALIDCASECONVERSION,
+        EINVALIDDIRECTIVE, EINVALIDDONOTAVERAGE, EINVALIDINCLINATION, EINVALIDINCLINATIONUNIT,
         EINVALIDLENGTH, EINVALIDLENGTHUNIT, EINVALIDLRUDORDER, EINVALIDLRUDORDERITEM,
-        EINVALIDLRUDSTYLE, EINVALIDMEASUREMENTORDER, EINVALIDOPTION, EINVALIDORDERITEM,
-        EINVALIDTAPINGMETHOD, EINVALIDUNITVARIANCE, EMISSINGINCHES, EMISSINGLRUDORDER,
-        EMISSINGLRUDSTYLE, EMISSINGVALUE, EMISSINGWHITESPACE, EUNEXPECTED, Inclination,
-        InclinationUnit, InvalidSrvItem, InvalidUnitsOption, InvalidValue, InvalidWallsSrvFile,
-        Length, LengthUnit, LrudItem, LrudOptionLocs, LrudStyle, MaybeValidLrudItem,
-        MaybeValidLrudOrder, MaybeValidLrudStyle, MaybeValidOrderItem, MaybeValidSrvItem,
-        MaybeValidUnitsOption, MaybeValidWallsSrvFile, OrderItem, OrderOptionLocs,
-        PrefixDirectiveLocs, PrefixLevel, RectilinearItem, SrvItem, SrvSettings,
+        EINVALIDLRUDSTYLE, EINVALIDMEASUREMENTORDER, EINVALIDNUMBER, EINVALIDOPTION,
+        EINVALIDORDERITEM, EINVALIDTAPINGMETHOD, EINVALIDTOLERANCE, EINVALIDUNITVARIANCE,
+        EMISSINGBACKSIGHTCORRECTED, EMISSINGDONOTAVERAGE, EMISSINGINCHES, EMISSINGLRUDORDER,
+        EMISSINGLRUDSTYLE, EMISSINGTOLERANCE, EMISSINGVALUE, EMISSINGWHITESPACE, EUNEXPECTED,
+        Inclination, InclinationUnit, InvalidBacksightOptions, InvalidSrvItem, InvalidUnitsOption,
+        InvalidValue, InvalidWallsSrvFile, Length, LengthUnit, LrudItem, LrudOptionLocs, LrudStyle,
+        MaybeValidLrudItem, MaybeValidLrudOrder, MaybeValidLrudStyle, MaybeValidOrderItem,
+        MaybeValidSrvItem, MaybeValidUnitsOption, MaybeValidWallsSrvFile, OrderItem,
+        OrderOptionLocs, PrefixDirectiveLocs, PrefixLevel, RectilinearItem, SrvItem, SrvSettings,
         StationNameCaseConversion, TapingMethod, UnitsDirectiveLocs, UnitsOption, WallsSrvFile,
     },
     types::{ParseIssue, ParseMatch, ParseState, SourceLoc, SourcePos},
@@ -36,7 +38,9 @@ const CHARACTER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\S").unwrap())
 const INCHES_SUFFIX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)i").unwrap());
 const NAME: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[^:;,#\s]+").unwrap());
 const COLON: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^:").unwrap());
+const COMMA: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^,").unwrap());
 const LETTER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)[a-z]").unwrap());
+const UNTIL_COMMA: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[^,]*").unwrap());
 const UNITS_OPTION: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[^:;,#=\"\\s]+").unwrap());
 const UNEXPECTED_AFTER_UNITS_OPTION: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[^\s;]+").unwrap());
@@ -243,8 +247,16 @@ impl<'i> WallsSrvParser<'i> {
                         UnitsOption::height_adjustment,
                         InvalidUnitsOption::height_adjustment,
                     ),
-                    "typeab" => todo!(),
-                    "typevb" => todo!(),
+                    "typeab" => self.backsight_option(
+                        m,
+                        UnitsOption::backsight_azimuth_type,
+                        InvalidUnitsOption::backsight_azimuth_type,
+                    ),
+                    "typevb" => self.backsight_option(
+                        m,
+                        UnitsOption::backsight_inclination_type,
+                        InvalidUnitsOption::backsight_inclination_type,
+                    ),
                     "reset" => UnitsOption::Reset { loc: m.into() }.into(),
                     "save" => UnitsOption::Save { loc: m.into() }.into(),
                     // TODO: error when saved_settings stack is empty?
@@ -533,16 +545,17 @@ impl<'i> WallsSrvParser<'i> {
                         )
                         .into()
                     }
-                    invalid => {
-                        let order: Vec<MaybeValidOrderItem> = invalid
+                    _ => {
+                        let order: Vec<MaybeValidOrderItem> = value
+                            .as_str()
                             .char_indices()
                             .map(|(byte_pos, c)| match c {
-                                'd' => OrderItem::Distance.into(),
-                                'a' => OrderItem::Azimuth.into(),
-                                'v' => OrderItem::Inclination.into(),
-                                'e' => OrderItem::Easting.into(),
-                                'n' => OrderItem::Northing.into(),
-                                'u' => OrderItem::Elevation.into(),
+                                'd' | 'D' => OrderItem::Distance.into(),
+                                'a' | 'A' => OrderItem::Azimuth.into(),
+                                'v' | 'V' => OrderItem::Inclination.into(),
+                                'e' | 'E' => OrderItem::Easting.into(),
+                                'n' | 'N' => OrderItem::Northing.into(),
+                                'u' | 'U' => OrderItem::Elevation.into(),
                                 invalid => MaybeValidOrderItem::Invalid(InvalidValue {
                                     invalid: invalid.into(),
                                     issues: Some(vec![self.push_error(
@@ -876,13 +889,12 @@ impl<'i> WallsSrvParser<'i> {
                         .map(|m| {
                             let order: Vec<MaybeValidLrudItem> = m
                                 .as_str()
-                                .to_ascii_lowercase()
                                 .char_indices()
                                 .map(|(byte_pos, c)| match c {
-                                    'l' => LrudItem::Left.into(),
-                                    'r' => LrudItem::Right.into(),
-                                    'u' => LrudItem::Up.into(),
-                                    'd' => LrudItem::Down.into(),
+                                    'l' | 'L' => LrudItem::Left.into(),
+                                    'r' | 'R' => LrudItem::Right.into(),
+                                    'u' | 'U' => LrudItem::Up.into(),
+                                    'd' | 'D' => LrudItem::Down.into(),
                                     _ => MaybeValidLrudItem::Invalid(InvalidValue {
                                         invalid: c.into(),
                                         issues: Some(vec![self.push_error(
@@ -987,6 +999,174 @@ impl<'i> WallsSrvParser<'i> {
             },
         }
     }
+    fn backsight_option(
+        &mut self,
+        option: ParseMatch<'i>,
+        valid: impl Fn(BacksightOptions, Option<BacksightOptionsLocs>) -> UnitsOption,
+        invalid: impl Fn(InvalidBacksightOptions, Option<BacksightOptionsLocs>) -> InvalidUnitsOption,
+    ) -> MaybeValidUnitsOption {
+        match self.get_option_value("backsight options") {
+            Ok(value) => {
+                let mut p = ParseState::new(value.as_str(), value.start_pos());
+
+                let (is_corrected, is_corrected_loc) = p
+                    .find(&UNTIL_COMMA)
+                    .map(|l| {
+                        (
+                            match l.as_str() {
+                                "n" | "N" => Ok(false),
+                                "c" | "C" => Ok(true),
+                                "" => Err(InvalidValue {
+                                    invalid: "".into(),
+                                    issues: Some(vec![self.push_error(
+                                        EMISSINGBACKSIGHTCORRECTED,
+                                        Some("Missing backsight corrected flag".into()),
+                                        Some(l.loc()),
+                                    )]),
+                                }),
+                                invalid => Err(InvalidValue {
+                                    invalid: invalid.into(),
+                                    issues: Some(vec![self.push_error(
+                                        EINVALIDBACKSIGHTCORRECTED,
+                                        Some("Invalid backsight corrected flag".into()),
+                                        Some(l.loc()),
+                                    )]),
+                                }),
+                            },
+                            l.loc(),
+                        )
+                    })
+                    .unzip();
+
+                let (tolerance, tolerance_loc) = p
+                    .is_match(&COMMA)
+                    .then(|| {
+                        let field = p.find(&UNTIL_COMMA).unwrap();
+                        if field.is_empty() {
+                            return (
+                                Err(InvalidValue {
+                                    invalid: field.as_str().into(),
+                                    issues: Some(vec![self.push_error(
+                                        EMISSINGTOLERANCE,
+                                        Some("Missing tolerance".into()),
+                                        Some(field.loc()),
+                                    )]),
+                                }),
+                                field.loc(),
+                            );
+                        }
+                        let mut p = field.reparse();
+                        let start = p.pos();
+                        let tolerance = unsigned_number(&mut p);
+                        let tolerance_loc = start.up_to(p.pos());
+                        self.expect_done(&mut p);
+                        match tolerance {
+                            Some(Ok(tolerance)) => (Ok(tolerance), tolerance_loc),
+                            _ => (
+                                Err(InvalidValue {
+                                    invalid: field.as_str().into(),
+                                    issues: Some(vec![self.push_error(
+                                        EINVALIDTOLERANCE,
+                                        Some("Invalid tolerance".into()),
+                                        Some(field.loc()),
+                                    )]),
+                                }),
+                                field.loc(),
+                            ),
+                        }
+                    })
+                    .unzip();
+
+                let (do_not_average, do_not_average_loc) = p
+                    .is_match(&COMMA)
+                    .then(|| {
+                        let rest = p.find(&UNTIL_COMMA).unwrap();
+                        (
+                            match rest.as_str() {
+                                "x" | "X" => Ok(true),
+                                "" => Err(InvalidValue {
+                                    invalid: "".into(),
+                                    issues: Some(vec![self.push_error(
+                                        EMISSINGDONOTAVERAGE,
+                                        Some("Missing do not average flag".into()),
+                                        Some(rest.loc()),
+                                    )]),
+                                }),
+                                invalid => Err(InvalidValue {
+                                    invalid: invalid.into(),
+                                    issues: Some(vec![self.push_error(
+                                        EINVALIDDONOTAVERAGE,
+                                        Some("Invalid do not average flag".into()),
+                                        Some(rest.loc()),
+                                    )]),
+                                }),
+                            },
+                            rest.loc(),
+                        )
+                    })
+                    .unzip();
+
+                self.expect_done(&mut p);
+
+                match (
+                    is_corrected.map(|c| c.into()).transpose(),
+                    tolerance.map(|t| t.into()).transpose(),
+                    do_not_average.map(|d| d.into()).transpose(),
+                ) {
+                    (Ok(Some(is_corrected)), Ok(tolerance), Ok(do_not_average)) => valid(
+                        BacksightOptions {
+                            is_corrected,
+                            tolerance: Angle::degrees(tolerance.unwrap_or(5.0)),
+                            do_not_average: do_not_average.unwrap_or(false),
+                        },
+                        Some(BacksightOptionsLocs {
+                            option: option.into(),
+                            is_corrected: is_corrected_loc,
+                            tolerance: tolerance_loc,
+                            do_not_average: do_not_average_loc,
+                        }),
+                    )
+                    .into(),
+                    (is_corrected, tolerance, do_not_average) => MaybeValidUnitsOption::Invalid {
+                        invalid: invalid(
+                            InvalidBacksightOptions {
+                                is_corrected: is_corrected.transpose().map(|c| c.into()),
+                                tolerance: match tolerance {
+                                    Ok(Some(tolerance)) => Some(Angle::degrees(tolerance).into()),
+                                    Err(value) => Some(value.into()),
+                                    _ => None,
+                                },
+                                do_not_average: do_not_average.transpose().map(|d| d.into()),
+                            },
+                            Some(BacksightOptionsLocs {
+                                option: option.into(),
+                                is_corrected: is_corrected_loc,
+                                tolerance: tolerance_loc,
+                                do_not_average: do_not_average_loc,
+                            }),
+                        ),
+                        issues: None,
+                    },
+                }
+            }
+            Err(issue) => MaybeValidUnitsOption::Invalid {
+                invalid: invalid(
+                    InvalidBacksightOptions {
+                        is_corrected: None,
+                        tolerance: None,
+                        do_not_average: None,
+                    },
+                    Some(BacksightOptionsLocs {
+                        option: option.into(),
+                        is_corrected: None,
+                        tolerance: None,
+                        do_not_average: None,
+                    }),
+                ),
+                issues: Some(vec![self.push_issue(issue)]),
+            },
+        }
+    }
     fn prefix_directive(
         &mut self,
         directive_match: ParseMatch<'i>,
@@ -1054,6 +1234,12 @@ impl<'i> WallsSrvParser<'i> {
 }
 
 struct InvalidNumber<'i>(ParseFloatError, ParseMatch<'i>);
+
+impl<'i> From<InvalidNumber<'i>> for ParseIssue {
+    fn from(e: InvalidNumber<'i>) -> Self {
+        ParseIssue::error(EINVALIDNUMBER, Some("Invalid number".into()), e.1.into())
+    }
+}
 
 fn unsigned_number<'i>(p: &mut ParseState<'i>) -> Option<Result<f64, InvalidNumber<'i>>> {
     p.find(&UNSIGNED_NUMBER)

@@ -1,0 +1,22 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units typevb=c,3.,x\")"
+---
+items:
+  - loc: "#units typevb=c,3.,x"
+    locs:
+      directive: "#units"
+    options:
+      - do_not_average: true
+        is_corrected: true
+        loc: "typevb=c,3.,x"
+        locs:
+          do_not_average: x
+          is_corrected: c
+          option: typevb
+          tolerance: "3."
+        option: BacksightInclinationType
+        tolerance:
+          unit: Degrees
+          value: 3
+    type: UnitsDirective

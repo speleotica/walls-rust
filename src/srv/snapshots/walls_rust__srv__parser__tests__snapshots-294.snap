@@ -1,0 +1,27 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units typeab=x\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units typeab=x"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              is_corrected:
+                INVALID: x
+                issues:
+                  - 0
+              loc: typeab=x
+              locs:
+                is_corrected: x
+                option: typeab
+              option: BacksightAzimuthType
+        type: UnitsDirective
+issues:
+  - code: EINVALIDBACKSIGHTCORRECTED
+    loc: x
+    message: Invalid backsight corrected flag
+    severity: Error

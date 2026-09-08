@@ -1,0 +1,20 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units typeab=c\")"
+---
+items:
+  - loc: "#units typeab=c"
+    locs:
+      directive: "#units"
+    options:
+      - do_not_average: false
+        is_corrected: true
+        loc: typeab=c
+        locs:
+          is_corrected: c
+          option: typeab
+        option: BacksightAzimuthType
+        tolerance:
+          unit: Degrees
+          value: 5
+    type: UnitsDirective

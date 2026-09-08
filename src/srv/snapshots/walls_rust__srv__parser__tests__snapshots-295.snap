@@ -1,0 +1,29 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units typeab=n,\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units typeab=n,"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              is_corrected: false
+              loc: "typeab=n,"
+              locs:
+                is_corrected: n
+                option: typeab
+                tolerance: ""
+              option: BacksightAzimuthType
+              tolerance:
+                INVALID: ""
+                issues:
+                  - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGTOLERANCE
+    loc: ""
+    message: Missing tolerance
+    severity: Error

@@ -1,0 +1,31 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units typeab=,3\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units typeab=,3"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              is_corrected:
+                INVALID: ""
+                issues:
+                  - 0
+              loc: "typeab=,3"
+              locs:
+                is_corrected: ""
+                option: typeab
+                tolerance: "3"
+              option: BacksightAzimuthType
+              tolerance:
+                unit: Degrees
+                value: 3
+        type: UnitsDirective
+issues:
+  - code: EMISSINGBACKSIGHTCORRECTED
+    loc: ""
+    message: Missing backsight corrected flag
+    severity: Error

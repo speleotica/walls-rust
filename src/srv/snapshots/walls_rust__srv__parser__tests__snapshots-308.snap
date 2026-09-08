@@ -1,0 +1,20 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units typevb=N\")"
+---
+items:
+  - loc: "#units typevb=N"
+    locs:
+      directive: "#units"
+    options:
+      - do_not_average: false
+        is_corrected: false
+        loc: typevb=N
+        locs:
+          is_corrected: N
+          option: typevb
+        option: BacksightInclinationType
+        tolerance:
+          unit: Degrees
+          value: 5
+    type: UnitsDirective

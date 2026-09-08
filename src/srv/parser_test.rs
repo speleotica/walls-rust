@@ -323,6 +323,42 @@ fn test_snapshots() {
     assert_yaml_snapshot!(&parse("#units lrud=:ldur"));
     assert_yaml_snapshot!(&parse("#units lrud=t:ludr;comment"));
     assert_yaml_snapshot!(&parse("#units lrud=t:ludr#blah"));
+
+    assert_yaml_snapshot!(&parse("#units typeab"));
+    assert_yaml_snapshot!(&parse("#units typeab="));
+    assert_yaml_snapshot!(&parse("#units typeab=n"));
+    assert_yaml_snapshot!(&parse("#units typeab=N"));
+    assert_yaml_snapshot!(&parse("#units typeab=c"));
+    assert_yaml_snapshot!(&parse("#units typeab=C"));
+    assert_yaml_snapshot!(&parse("#units typeab=x"));
+    assert_yaml_snapshot!(&parse("#units typeab=n,"));
+    assert_yaml_snapshot!(&parse("#units typeab=,3"));
+    assert_yaml_snapshot!(&parse("#units typeab=n,3"));
+    assert_yaml_snapshot!(&parse("#units typeab=c,5.4"));
+    assert_yaml_snapshot!(&parse("#units typeab=c,-2"));
+    assert_yaml_snapshot!(&parse("#units typeab=c,3.,"));
+    assert_yaml_snapshot!(&parse("#units typeab=c,3.,x"));
+    assert_yaml_snapshot!(&parse("#units typeab=c,3.,q"));
+    assert_yaml_snapshot!(&parse("#units typeab=c,3.,xb"));
+    assert_yaml_snapshot!(&parse("#units typeab=n,.3,qb"));
+
+    assert_yaml_snapshot!(&parse("#units typevb"));
+    assert_yaml_snapshot!(&parse("#units typevb="));
+    assert_yaml_snapshot!(&parse("#units typevb=n"));
+    assert_yaml_snapshot!(&parse("#units typevb=N"));
+    assert_yaml_snapshot!(&parse("#units typevb=c"));
+    assert_yaml_snapshot!(&parse("#units typevb=C"));
+    assert_yaml_snapshot!(&parse("#units typevb=x"));
+    assert_yaml_snapshot!(&parse("#units typevb=n,"));
+    assert_yaml_snapshot!(&parse("#units typevb=,3"));
+    assert_yaml_snapshot!(&parse("#units typevb=n,3"));
+    assert_yaml_snapshot!(&parse("#units typevb=c,5.4"));
+    assert_yaml_snapshot!(&parse("#units typevb=c,-2"));
+    assert_yaml_snapshot!(&parse("#units typevb=c,3.,"));
+    assert_yaml_snapshot!(&parse("#units typevb=c,3.,x"));
+    assert_yaml_snapshot!(&parse("#units typevb=c,3.,q"));
+    assert_yaml_snapshot!(&parse("#units typevb=c,3.,xb"));
+    assert_yaml_snapshot!(&parse("#units typevb=n,.3,qb"));
 }
 
 fn parse(input: &str) -> Value {

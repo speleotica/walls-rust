@@ -1,0 +1,21 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units typeab=n,3\")"
+---
+items:
+  - loc: "#units typeab=n,3"
+    locs:
+      directive: "#units"
+    options:
+      - do_not_average: false
+        is_corrected: false
+        loc: "typeab=n,3"
+        locs:
+          is_corrected: n
+          option: typeab
+          tolerance: "3"
+        option: BacksightAzimuthType
+        tolerance:
+          unit: Degrees
+          value: 3
+    type: UnitsDirective

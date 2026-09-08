@@ -1,0 +1,21 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units typevb=c,5.4\")"
+---
+items:
+  - loc: "#units typevb=c,5.4"
+    locs:
+      directive: "#units"
+    options:
+      - do_not_average: false
+        is_corrected: true
+        loc: "typevb=c,5.4"
+        locs:
+          is_corrected: c
+          option: typevb
+          tolerance: "5.4"
+        option: BacksightInclinationType
+        tolerance:
+          unit: Degrees
+          value: 5.4
+    type: UnitsDirective

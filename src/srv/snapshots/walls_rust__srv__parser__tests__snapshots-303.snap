@@ -1,0 +1,33 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units typeab=c,3.,xb\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units typeab=c,3.,xb"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              do_not_average:
+                INVALID: xb
+                issues:
+                  - 0
+              is_corrected: true
+              loc: "typeab=c,3.,xb"
+              locs:
+                do_not_average: xb
+                is_corrected: c
+                option: typeab
+                tolerance: "3."
+              option: BacksightAzimuthType
+              tolerance:
+                unit: Degrees
+                value: 3
+        type: UnitsDirective
+issues:
+  - code: EINVALIDDONOTAVERAGE
+    loc: xb
+    message: Invalid do not average flag
+    severity: Error

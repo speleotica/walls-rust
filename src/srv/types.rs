@@ -8,6 +8,36 @@ use crate::types::{ParseIssue, SourceLoc};
 #[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
+#[serde(untagged)]
+pub enum MaybeValidBool {
+    Valid(bool),
+    Invalid(InvalidValue),
+}
+
+impl From<bool> for MaybeValidBool {
+    fn from(value: bool) -> Self {
+        MaybeValidBool::Valid(value)
+    }
+}
+
+impl From<InvalidValue> for MaybeValidBool {
+    fn from(value: InvalidValue) -> Self {
+        MaybeValidBool::Invalid(value)
+    }
+}
+
+impl From<Result<bool, InvalidValue>> for MaybeValidBool {
+    fn from(value: Result<bool, InvalidValue>) -> Self {
+        match value {
+            Ok(value) => MaybeValidBool::Valid(value),
+            Err(invalid) => MaybeValidBool::Invalid(invalid),
+        }
+    }
+}
+
+#[skip_serializing_none]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+#[schemars(deny_unknown_fields)]
 pub struct InvalidValue {
     #[serde(rename = "INVALID")]
     pub invalid: String,
@@ -114,6 +144,18 @@ impl Angle {
 pub enum MaybeValidAngle {
     Valid(Angle),
     Invalid(InvalidValue),
+}
+
+impl From<Angle> for MaybeValidAngle {
+    fn from(value: Angle) -> Self {
+        MaybeValidAngle::Valid(value)
+    }
+}
+
+impl From<InvalidValue> for MaybeValidAngle {
+    fn from(value: InvalidValue) -> Self {
+        MaybeValidAngle::Invalid(value)
+    }
 }
 
 #[skip_serializing_none]
@@ -454,7 +496,11 @@ impl SrvSettings {
                 loc: _,
                 locs: _,
             } => self.backsight_azimuth_correction = *correction,
-            UnitsOption::BacksightAzimuthType(options) => {
+            UnitsOption::BacksightAzimuthType {
+                options,
+                loc: _,
+                locs: _,
+            } => {
                 self.backsight_azimuth_options = options.clone();
             }
             UnitsOption::BacksightAzimuthUnit {
@@ -477,9 +523,11 @@ impl SrvSettings {
                 loc: _,
                 locs: _,
             } => self.backsight_inclination_correction = *correction,
-            UnitsOption::BacksightInclinationType(options) => {
-                self.backsight_inclination_options = options.clone()
-            }
+            UnitsOption::BacksightInclinationType {
+                options,
+                loc: _,
+                locs: _,
+            } => self.backsight_inclination_options = options.clone(),
             UnitsOption::BacksightInclinationUnit {
                 unit,
                 loc: _,
@@ -611,7 +659,6 @@ pub struct BacksightOptions {
     pub is_corrected: bool,
     pub tolerance: Angle,
     pub do_not_average: bool,
-    pub locs: Option<BacksightOptionsLocs>,
 }
 
 impl BacksightOptions {
@@ -620,40 +667,49 @@ impl BacksightOptions {
             is_corrected: false,
             tolerance: Angle::degrees(5.0),
             do_not_average: false,
-            locs: None,
         }
     }
 }
 
 #[skip_serializing_none]
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct BacksightOptionsLocs {
+    pub option: Option<SourceLoc>,
     pub is_corrected: Option<SourceLoc>,
     pub tolerance: Option<SourceLoc>,
     pub do_not_average: Option<SourceLoc>,
+}
+
+impl BacksightOptionsLocs {
+    pub fn loc(self) -> Option<SourceLoc> {
+        match self {
+            BacksightOptionsLocs {
+                option: Some(option),
+                is_corrected,
+                tolerance,
+                do_not_average,
+            } => Some(
+                option.start.up_to(
+                    do_not_average
+                        .or(tolerance)
+                        .or(is_corrected)
+                        .unwrap_or(option)
+                        .end,
+                ),
+            ),
+            _ => None,
+        }
+    }
 }
 
 #[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub struct InvalidBacksightOptions {
-    pub is_corrected: bool,
-    pub tolerance: Option<Angle>,
-    pub do_not_average: bool,
-    pub locs: Option<BacksightOptionsLocs>,
-}
-
-#[skip_serializing_none]
-#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
-#[schemars(deny_unknown_fields)]
-pub enum MaybeValidBacksightOptions {
-    Valid(BacksightOptions),
-    Invalid {
-        #[serde(rename = "INVALID")]
-        invalid: InvalidBacksightOptions,
-        issues: Option<Vec<usize>>,
-    },
+    pub is_corrected: Option<MaybeValidBool>,
+    pub tolerance: Option<MaybeValidAngle>,
+    pub do_not_average: Option<MaybeValidBool>,
 }
 
 #[derive(JsonSchema, Serialize_repr, Deserialize_repr, PartialEq, Debug, Copy, Clone)]
@@ -809,9 +865,19 @@ pub enum UnitsOption {
         locs: Option<CorrectionOptionLocs>,
     },
     #[schemars(title = "BacksightAzimuthType")]
-    BacksightAzimuthType(BacksightOptions),
+    BacksightAzimuthType {
+        #[serde(flatten)]
+        options: BacksightOptions,
+        loc: Option<SourceLoc>,
+        locs: Option<BacksightOptionsLocs>,
+    },
     #[schemars(title = "BacksightInclinationType")]
-    BacksightInclinationType(BacksightOptions),
+    BacksightInclinationType {
+        #[serde(flatten)]
+        options: BacksightOptions,
+        loc: Option<SourceLoc>,
+        locs: Option<BacksightOptionsLocs>,
+    },
     #[schemars(title = "ResetOption")]
     Reset { loc: Option<SourceLoc> },
     #[schemars(title = "SaveOption")]
@@ -1091,6 +1157,27 @@ impl UnitsOption {
             }),
         }
     }
+    pub fn backsight_azimuth_type(
+        options: BacksightOptions,
+        locs: Option<BacksightOptionsLocs>,
+    ) -> UnitsOption {
+        UnitsOption::BacksightAzimuthType {
+            options,
+            locs,
+            loc: locs.and_then(|l| l.loc()),
+        }
+    }
+    pub fn backsight_inclination_type(
+        options: BacksightOptions,
+        locs: Option<BacksightOptionsLocs>,
+    ) -> UnitsOption {
+        UnitsOption::BacksightInclinationType {
+            options,
+            locs,
+            loc: locs.and_then(|l| l.loc()),
+        }
+    }
+
     pub fn magnetic_declination(
         declination: Angle,
         option_loc: SourceLoc,
@@ -1417,9 +1504,19 @@ pub enum InvalidUnitsOption {
         locs: Option<CorrectionOptionLocs>,
     },
     #[schemars(title = "InvalidBacksightAzimuthType")]
-    BacksightAzimuthType(InvalidBacksightOptions),
+    BacksightAzimuthType {
+        #[serde(flatten)]
+        options: InvalidBacksightOptions,
+        loc: Option<SourceLoc>,
+        locs: Option<BacksightOptionsLocs>,
+    },
     #[schemars(title = "InvalidBacksightInclinationType")]
-    BacksightInclinationType(InvalidBacksightOptions),
+    BacksightInclinationType {
+        #[serde(flatten)]
+        options: InvalidBacksightOptions,
+        loc: Option<SourceLoc>,
+        locs: Option<BacksightOptionsLocs>,
+    },
     #[schemars(title = "InvalidStationNameCaseOption")]
     StationNameCase {
         conversion: Option<String>,
@@ -1666,6 +1763,26 @@ impl InvalidUnitsOption {
                 option: option_loc,
                 correction: correction_loc,
             }),
+        }
+    }
+    pub fn backsight_azimuth_type(
+        options: InvalidBacksightOptions,
+        locs: Option<BacksightOptionsLocs>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::BacksightAzimuthType {
+            options,
+            locs,
+            loc: locs.and_then(|l| l.loc()),
+        }
+    }
+    pub fn backsight_inclination_type(
+        options: InvalidBacksightOptions,
+        locs: Option<BacksightOptionsLocs>,
+    ) -> InvalidUnitsOption {
+        InvalidUnitsOption::BacksightInclinationType {
+            options,
+            locs,
+            loc: locs.and_then(|l| l.loc()),
         }
     }
     pub fn magnetic_declination(
@@ -2460,6 +2577,7 @@ pub const EMISSINGVALUE: &str = "EMISSINGVALUE";
 pub const EINVALIDOPTIONVALUE: &str = "EINVALIDOPTIONVALUE";
 pub const EINVALIDMEASUREMENTORDER: &str = "EINVALIDMEASUREMENTORDER";
 pub const EINVALIDORDERITEM: &str = "EINVALIDORDERITEM";
+pub const EINVALIDNUMBER: &str = "EINVALIDNUMBER";
 pub const EINVALIDLENGTH: &str = "EINVALIDLENGTH";
 pub const EINVALIDLENGTHUNIT: &str = "EINVALIDLENGTHUNIT";
 pub const EINVALIDANGLE: &str = "EINVALIDANGLE";
@@ -2480,3 +2598,9 @@ pub const EINVALIDLRUDORDER: &str = "EINVALIDLRUDORDER";
 pub const EMISSINGLRUDORDER: &str = "EMISSINGLRUDORDER";
 pub const EMISSINGINCHES: &str = "EMISSINGINCHES";
 pub const EMISSINGWHITESPACE: &str = "EMISSINGWHITESPACE";
+pub const EINVALIDBACKSIGHTCORRECTED: &str = "EINVALIDBACKSIGHTCORRECTED";
+pub const EMISSINGBACKSIGHTCORRECTED: &str = "EMISSINGBACKSIGHTCORRECTED";
+pub const EMISSINGTOLERANCE: &str = "EMISSINGTOLERANCE";
+pub const EINVALIDTOLERANCE: &str = "EINVALIDTOLERANCE";
+pub const EINVALIDDONOTAVERAGE: &str = "EINVALIDDONOTAVERAGE";
+pub const EMISSINGDONOTAVERAGE: &str = "EMISSINGDONOTAVERAGE";

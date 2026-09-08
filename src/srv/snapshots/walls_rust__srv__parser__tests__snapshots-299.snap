@@ -1,0 +1,33 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units typeab=c,-2\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units typeab=c,-2"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              is_corrected: true
+              loc: "typeab=c,-2"
+              locs:
+                is_corrected: c
+                option: typeab
+                tolerance: "-2"
+              option: BacksightAzimuthType
+              tolerance:
+                INVALID: "-2"
+                issues:
+                  - 1
+        type: UnitsDirective
+issues:
+  - code: EUNEXPECTED
+    loc: "-2"
+    message: Unexpected text
+    severity: Error
+  - code: EINVALIDTOLERANCE
+    loc: "-2"
+    message: Invalid tolerance
+    severity: Error
