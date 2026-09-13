@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incvb=3:00:61\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units incvb=3:00:61"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              correction: "3:00:61"
+              loc: "incvb=3:00:61"
+              locs:
+                correction: "3:00:61"
+                option: incvb
+              option: BacksightInclinationCorrection
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: ESECONDSOUTOFRANGE
+    loc: "61"
+    message: Seconds out of range
+    severity: Error

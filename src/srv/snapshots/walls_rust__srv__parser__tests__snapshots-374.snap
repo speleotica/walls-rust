@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incab=::\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units incab=::"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              correction: "::"
+              loc: "incab=::"
+              locs:
+                correction: "::"
+                option: incab
+              option: BacksightAzimuthCorrection
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGSECONDS
+    loc: ""
+    message: Missing seconds
+    severity: Error

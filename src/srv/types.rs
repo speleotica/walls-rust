@@ -114,26 +114,69 @@ pub enum AngleUnit {
 pub struct Angle {
     pub value: f64,
     pub unit: AngleUnit,
+    pub degrees: Option<f64>,
+    pub minutes: Option<f64>,
+    pub seconds: Option<f64>,
+    pub locs: Option<AngleLocs>,
+}
+
+#[skip_serializing_none]
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
+#[schemars(deny_unknown_fields)]
+pub struct AngleLocs {
+    pub degrees: Option<SourceLoc>,
+    pub minutes: Option<SourceLoc>,
+    pub seconds: Option<SourceLoc>,
 }
 
 impl Angle {
-    pub fn degrees(value: f64) -> Angle {
+    pub fn new(value: f64, unit: AngleUnit) -> Angle {
         Angle {
             value,
-            unit: AngleUnit::Degrees,
+            unit,
+            degrees: None,
+            minutes: None,
+            seconds: None,
+            locs: None,
         }
+    }
+
+    pub fn negate(&self) -> Angle {
+        Angle {
+            value: -self.value,
+            unit: self.unit,
+            degrees: self.degrees.map(|degrees| -degrees),
+            minutes: self.degrees.map(|minutes| -minutes),
+            seconds: self.degrees.map(|seconds| -seconds),
+            locs: self.locs,
+        }
+    }
+
+    pub fn dms(
+        degrees: Option<f64>,
+        minutes: Option<f64>,
+        seconds: Option<f64>,
+        locs: Option<AngleLocs>,
+    ) -> Angle {
+        Angle {
+            value: degrees.unwrap_or(0.0)
+                + (minutes.unwrap_or(0.0) + seconds.unwrap_or(0.0) / 60.0) / 60.0,
+            unit: AngleUnit::Degrees,
+            degrees,
+            minutes,
+            seconds,
+            locs,
+        }
+    }
+
+    pub fn degrees(value: f64) -> Angle {
+        Angle::new(value, AngleUnit::Degrees)
     }
     pub fn mils(value: f64) -> Angle {
-        Angle {
-            value,
-            unit: AngleUnit::Mils,
-        }
+        Angle::new(value, AngleUnit::Mils)
     }
     pub fn grads(value: f64) -> Angle {
-        Angle {
-            value,
-            unit: AngleUnit::Grads,
-        }
+        Angle::new(value, AngleUnit::Grads)
     }
 }
 
@@ -168,37 +211,90 @@ pub enum InclinationUnit {
     Percent,
 }
 
+impl From<AngleUnit> for InclinationUnit {
+    fn from(value: AngleUnit) -> Self {
+        match value {
+            AngleUnit::Degrees => InclinationUnit::Degrees,
+            AngleUnit::Grads => InclinationUnit::Grads,
+            AngleUnit::Mils => InclinationUnit::Mils,
+        }
+    }
+}
+
 #[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct Inclination {
     pub value: f64,
     pub unit: InclinationUnit,
+    pub degrees: Option<f64>,
+    pub minutes: Option<f64>,
+    pub seconds: Option<f64>,
+    pub locs: Option<AngleLocs>,
 }
 
 impl Inclination {
-    pub fn degrees(value: f64) -> Inclination {
+    pub fn new(value: f64, unit: InclinationUnit) -> Inclination {
         Inclination {
             value,
-            unit: InclinationUnit::Degrees,
+            unit,
+            degrees: None,
+            minutes: None,
+            seconds: None,
+            locs: None,
         }
+    }
+
+    pub fn negate(&self) -> Inclination {
+        Inclination {
+            value: -self.value,
+            unit: self.unit,
+            degrees: self.degrees.map(|degrees| -degrees),
+            minutes: self.degrees.map(|minutes| -minutes),
+            seconds: self.degrees.map(|seconds| -seconds),
+            locs: self.locs,
+        }
+    }
+
+    pub fn dms(
+        degrees: f64,
+        minutes: f64,
+        seconds: Option<f64>,
+        locs: Option<AngleLocs>,
+    ) -> Inclination {
+        Inclination {
+            value: degrees + (minutes + seconds.unwrap_or(0.0) / 60.0) / 60.0,
+            unit: InclinationUnit::Degrees,
+            degrees: Some(degrees),
+            minutes: Some(minutes),
+            seconds,
+            locs,
+        }
+    }
+
+    pub fn degrees(value: f64) -> Inclination {
+        Inclination::new(value, InclinationUnit::Degrees)
     }
     pub fn mils(value: f64) -> Inclination {
-        Inclination {
-            value,
-            unit: InclinationUnit::Mils,
-        }
+        Inclination::new(value, InclinationUnit::Mils)
     }
     pub fn grads(value: f64) -> Inclination {
-        Inclination {
-            value,
-            unit: InclinationUnit::Grads,
-        }
+        Inclination::new(value, InclinationUnit::Grads)
     }
     pub fn percent(value: f64) -> Inclination {
+        Inclination::new(value, InclinationUnit::Percent)
+    }
+}
+
+impl From<Angle> for Inclination {
+    fn from(angle: Angle) -> Self {
         Inclination {
-            value,
-            unit: InclinationUnit::Percent,
+            value: angle.value,
+            unit: angle.unit.into(),
+            degrees: angle.degrees,
+            minutes: angle.minutes,
+            seconds: angle.seconds,
+            locs: angle.locs,
         }
     }
 }
@@ -2582,6 +2678,12 @@ pub const EINVALIDLENGTH: &str = "EINVALIDLENGTH";
 pub const EINVALIDLENGTHUNIT: &str = "EINVALIDLENGTHUNIT";
 pub const EINVALIDANGLE: &str = "EINVALIDANGLE";
 pub const EINVALIDANGLEUNIT: &str = "EINVALIDANGLEUNIT";
+pub const EANGLEOUTOFRANGE: &str = "EANGLEOUTOFRANGE";
+pub const EMISSINGMINUTES: &str = "EMISSINGMINUTES";
+pub const EMISSINGSECONDS: &str = "EMISSINGSECONDS";
+pub const EDEGREESOUTOFRANGE: &str = "EDEGREESOUTOFRANGE";
+pub const EMINUTESOUTOFRANGE: &str = "EMINUTESOUTOFRANGE";
+pub const ESECONDSOUTOFRANGE: &str = "ESECONDSOUTOFRANGE";
 pub const EINVALIDAZIMUTH: &str = "EINVALIDAZIMUTH";
 pub const EAZIMUTHOUTOFRANGE: &str = "EAZIMUTHOUTOFRANGE";
 pub const EINVALIDAZIMUTHUNIT: &str = "EINVALIDAZIMUTHUNIT";

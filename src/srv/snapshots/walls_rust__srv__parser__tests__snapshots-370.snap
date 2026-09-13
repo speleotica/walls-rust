@@ -1,0 +1,24 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incab=3::59\")"
+---
+items:
+  - loc: "#units incab=3::59"
+    locs:
+      directive: "#units"
+    options:
+      - correction:
+          degrees: 3
+          locs:
+            degrees: "3"
+            minutes: ""
+            seconds: "59"
+          seconds: 59
+          unit: Degrees
+          value: 3.016388888888889
+        loc: "incab=3::59"
+        locs:
+          correction: "3::59"
+          option: incab
+        option: BacksightAzimuthCorrection
+    type: UnitsDirective

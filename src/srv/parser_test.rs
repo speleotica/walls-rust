@@ -359,6 +359,62 @@ fn test_snapshots() {
     assert_yaml_snapshot!(&parse("#units typevb=c,3.,q"));
     assert_yaml_snapshot!(&parse("#units typevb=c,3.,xb"));
     assert_yaml_snapshot!(&parse("#units typevb=n,.3,qb"));
+
+    assert_yaml_snapshot!(&parse("#units incab=2:"));
+    assert_yaml_snapshot!(&parse("#units incab=2:3"));
+    assert_yaml_snapshot!(&parse("#units incab=2:59"));
+    assert_yaml_snapshot!(&parse("#units incab=2:59.43"));
+    assert_yaml_snapshot!(&parse("#units incab=2:3:5"));
+    assert_yaml_snapshot!(&parse("#units incab=2:3:5.2"));
+    assert_yaml_snapshot!(&parse("#units incab=359:59:59.999"));
+    assert_yaml_snapshot!(&parse("#units incab=-359:59:59.999"));
+    assert_yaml_snapshot!(&parse("#units incab=360"));
+    assert_yaml_snapshot!(&parse("#units incab=360:01"));
+    assert_yaml_snapshot!(&parse("#units incab=360:00:01"));
+    assert_yaml_snapshot!(&parse("#units incab=360:00:00.001"));
+    assert_yaml_snapshot!(&parse("#units incab=3:60"));
+    assert_yaml_snapshot!(&parse("#units incab=3:61"));
+    assert_yaml_snapshot!(&parse("#units incab=3:00:60"));
+    assert_yaml_snapshot!(&parse("#units incab=3:00:61"));
+    assert_yaml_snapshot!(&parse("#units incab=3:02g"));
+    assert_yaml_snapshot!(&parse("#units incab=3:-01"));
+    assert_yaml_snapshot!(&parse("#units incab=360.01"));
+    assert_yaml_snapshot!(&parse("#units incab=400.01g"));
+    assert_yaml_snapshot!(&parse("#units incab=6400.01m"));
+
+    assert_yaml_snapshot!(&parse("#units incvb=2:"));
+    assert_yaml_snapshot!(&parse("#units incvb=2:3"));
+    assert_yaml_snapshot!(&parse("#units incvb=2:59"));
+    assert_yaml_snapshot!(&parse("#units incvb=2:59.43"));
+    assert_yaml_snapshot!(&parse("#units incvb=2:3:5"));
+    assert_yaml_snapshot!(&parse("#units incvb=2:3:5.2"));
+    assert_yaml_snapshot!(&parse("#units incvb=89:59:59.999"));
+    assert_yaml_snapshot!(&parse("#units incvb=-89:59:59.999"));
+    assert_yaml_snapshot!(&parse("#units incvb=90"));
+    assert_yaml_snapshot!(&parse("#units incvb=90:01"));
+    assert_yaml_snapshot!(&parse("#units incvb=90:00:01"));
+    assert_yaml_snapshot!(&parse("#units incvb=90:00:00.001"));
+    assert_yaml_snapshot!(&parse("#units incvb=3:60"));
+    assert_yaml_snapshot!(&parse("#units incvb=3:61"));
+    assert_yaml_snapshot!(&parse("#units incvb=3:00:60"));
+    assert_yaml_snapshot!(&parse("#units incvb=3:00:61"));
+    assert_yaml_snapshot!(&parse("#units incvb=3:02g"));
+    assert_yaml_snapshot!(&parse("#units incvb=3:-01"));
+    assert_yaml_snapshot!(&parse("#units incvb=90.01"));
+    assert_yaml_snapshot!(&parse("#units incvb=100.01g"));
+    assert_yaml_snapshot!(&parse("#units incvb=1600.01m"));
+
+    assert_yaml_snapshot!(&parse("#units incab=:59"));
+    assert_yaml_snapshot!(&parse("#units incab=-:59"));
+    assert_yaml_snapshot!(&parse("#units incab=:60"));
+    assert_yaml_snapshot!(&parse("#units incab=::59"));
+    assert_yaml_snapshot!(&parse("#units incab=-::59"));
+    assert_yaml_snapshot!(&parse("#units incab=::60"));
+    assert_yaml_snapshot!(&parse("#units incab=3::59"));
+    assert_yaml_snapshot!(&parse("#units incab=360::01"));
+    assert_yaml_snapshot!(&parse("#units incab=3::"));
+    assert_yaml_snapshot!(&parse("#units incab=:"));
+    assert_yaml_snapshot!(&parse("#units incab=::"));
 }
 
 fn parse(input: &str) -> Value {

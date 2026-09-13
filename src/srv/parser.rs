@@ -4,17 +4,19 @@ use std::{num::ParseFloatError, sync::LazyLock};
 
 use crate::{
     srv::types::{
-        Angle, AngleUnit, BacksightOptions, BacksightOptionsLocs, CompassAndTapeItem,
-        CorrectionOptionLocs, EINCLINATIONOUTOFRANGE, EINVALIDANGLE, EINVALIDANGLEUNIT,
-        EINVALIDAZIMUTH, EINVALIDAZIMUTHUNIT, EINVALIDBACKSIGHTCORRECTED, EINVALIDCASECONVERSION,
-        EINVALIDDIRECTIVE, EINVALIDDONOTAVERAGE, EINVALIDINCLINATION, EINVALIDINCLINATIONUNIT,
-        EINVALIDLENGTH, EINVALIDLENGTHUNIT, EINVALIDLRUDORDER, EINVALIDLRUDORDERITEM,
-        EINVALIDLRUDSTYLE, EINVALIDMEASUREMENTORDER, EINVALIDNUMBER, EINVALIDOPTION,
-        EINVALIDORDERITEM, EINVALIDTAPINGMETHOD, EINVALIDTOLERANCE, EINVALIDUNITVARIANCE,
+        Angle, AngleLocs, AngleUnit, BacksightOptions, BacksightOptionsLocs, CompassAndTapeItem,
+        CorrectionOptionLocs, EANGLEOUTOFRANGE, EAZIMUTHOUTOFRANGE, EDEGREESOUTOFRANGE,
+        EINCLINATIONOUTOFRANGE, EINVALIDANGLE, EINVALIDANGLEUNIT, EINVALIDAZIMUTH,
+        EINVALIDAZIMUTHUNIT, EINVALIDBACKSIGHTCORRECTED, EINVALIDCASECONVERSION, EINVALIDDIRECTIVE,
+        EINVALIDDONOTAVERAGE, EINVALIDINCLINATION, EINVALIDINCLINATIONUNIT, EINVALIDLENGTH,
+        EINVALIDLENGTHUNIT, EINVALIDLRUDORDER, EINVALIDLRUDORDERITEM, EINVALIDLRUDSTYLE,
+        EINVALIDMEASUREMENTORDER, EINVALIDNUMBER, EINVALIDOPTION, EINVALIDORDERITEM,
+        EINVALIDTAPINGMETHOD, EINVALIDTOLERANCE, EINVALIDUNITVARIANCE, EMINUTESOUTOFRANGE,
         EMISSINGBACKSIGHTCORRECTED, EMISSINGDONOTAVERAGE, EMISSINGINCHES, EMISSINGLRUDORDER,
-        EMISSINGLRUDSTYLE, EMISSINGTOLERANCE, EMISSINGVALUE, EMISSINGWHITESPACE, EUNEXPECTED,
-        Inclination, InclinationUnit, InvalidBacksightOptions, InvalidSrvItem, InvalidUnitsOption,
-        InvalidValue, InvalidWallsSrvFile, Length, LengthUnit, LrudItem, LrudOptionLocs, LrudStyle,
+        EMISSINGLRUDSTYLE, EMISSINGMINUTES, EMISSINGSECONDS, EMISSINGTOLERANCE, EMISSINGVALUE,
+        EMISSINGWHITESPACE, ESECONDSOUTOFRANGE, EUNEXPECTED, Inclination, InclinationUnit,
+        InvalidBacksightOptions, InvalidSrvItem, InvalidUnitsOption, InvalidValue,
+        InvalidWallsSrvFile, Length, LengthUnit, LrudItem, LrudOptionLocs, LrudStyle,
         MaybeValidLrudItem, MaybeValidLrudOrder, MaybeValidLrudStyle, MaybeValidOrderItem,
         MaybeValidSrvItem, MaybeValidUnitsOption, MaybeValidWallsSrvFile, OrderItem,
         OrderOptionLocs, PrefixDirectiveLocs, PrefixLevel, RectilinearItem, SrvItem, SrvSettings,
@@ -1348,28 +1350,123 @@ fn signed_length<'i>(
 }
 
 enum InvalidAngle<'i> {
-    InvalidNumber(ParseFloatError, ParseMatch<'i>),
+    InvalidNumber(InvalidNumber<'i>),
     InvalidUnit(ParseMatch<'i>),
+    OutOfRange(Angle, SourceLoc),
+    MissingMinutes(Angle),
+    MissingSeconds(Angle),
+    DegreesOutOfRange(Angle),
+    MinutesOutOfRange(Angle),
+    SecondsOutOfRange(Angle),
 }
 
 impl<'i> From<InvalidNumber<'i>> for InvalidAngle<'i> {
     fn from(value: InvalidNumber<'i>) -> Self {
-        InvalidAngle::InvalidNumber(value.0, value.1)
+        InvalidAngle::InvalidNumber(value)
     }
 }
 
 impl<'i> From<InvalidAngle<'i>> for ParseIssue {
     fn from(value: InvalidAngle<'i>) -> Self {
         match value {
-            InvalidAngle::InvalidNumber(e, m) => {
-                ParseIssue::error(EINVALIDANGLE, Some(e.to_string()), Some(m.loc()))
-            }
+            InvalidAngle::InvalidNumber(value) => ParseIssue::error(
+                EINVALIDANGLE,
+                Some("Invalid angle".into()),
+                Some(value.1.into()),
+            ),
             InvalidAngle::InvalidUnit(m) => ParseIssue::error(
                 EINVALIDANGLEUNIT,
                 Some("Invalid angle unit".into()),
                 Some(m.loc()),
             ),
+            InvalidAngle::OutOfRange(_, loc) => ParseIssue::error(
+                EANGLEOUTOFRANGE,
+                Some("Angle out of range".into()),
+                Some(loc),
+            ),
+            InvalidAngle::MissingMinutes(angle) => ParseIssue::error(
+                EMISSINGMINUTES,
+                Some("Missing minutes".into()),
+                angle.locs.map(|l| l.minutes).flatten(),
+            ),
+            InvalidAngle::MissingSeconds(angle) => ParseIssue::error(
+                EMISSINGSECONDS,
+                Some("Missing seconds".into()),
+                angle.locs.map(|l| l.seconds).flatten(),
+            ),
+            InvalidAngle::DegreesOutOfRange(angle) => ParseIssue::error(
+                EDEGREESOUTOFRANGE,
+                Some("Degrees out of range".into()),
+                angle.locs.map(|l| l.degrees).flatten(),
+            ),
+            InvalidAngle::MinutesOutOfRange(angle) => ParseIssue::error(
+                EMINUTESOUTOFRANGE,
+                Some("Minutes out of range".into()),
+                angle.locs.map(|l| l.minutes).flatten(),
+            ),
+            InvalidAngle::SecondsOutOfRange(angle) => ParseIssue::error(
+                ESECONDSOUTOFRANGE,
+                Some("Seconds out of range".into()),
+                angle.locs.map(|l| l.seconds).flatten(),
+            ),
         }
+    }
+}
+
+enum NumberOrDMS {
+    Number(f64),
+    DMS(Angle),
+}
+
+fn unsigned_number_or_dms<'i>(
+    p: &mut ParseState<'i>,
+) -> Result<Option<NumberOrDMS>, InvalidAngle<'i>> {
+    let start = p.pos();
+    let degrees = unsigned_number(p).transpose()?;
+    let degrees_loc = start.up_to(p.pos());
+    if !p.is_match(&COLON) {
+        return match degrees {
+            Some(value) => Ok(Some(NumberOrDMS::Number(value))),
+            None => Ok(None),
+        };
+    }
+
+    let minutes_start = p.pos();
+    let minutes = unsigned_number(p).transpose()?;
+    let minutes_loc = Some(minutes_start.up_to(p.pos()));
+
+    let mut seconds: Option<f64> = None;
+    let mut seconds_loc: Option<SourceLoc> = None;
+    if p.is_match(&COLON) {
+        let seconds_start = p.pos();
+        seconds = unsigned_number(p).transpose()?;
+        seconds_loc = Some(seconds_start.up_to(p.pos()));
+    }
+    let angle = Angle::dms(
+        degrees,
+        minutes,
+        seconds,
+        Some(AngleLocs {
+            degrees: Some(degrees_loc),
+            minutes: minutes_loc,
+            seconds: seconds_loc,
+        }),
+    );
+
+    if seconds_loc.is_some() && seconds.is_none() {
+        Err(InvalidAngle::MissingSeconds(angle))
+    } else if seconds_loc.is_none() && minutes.is_none() {
+        Err(InvalidAngle::MissingMinutes(angle))
+    } else if degrees.unwrap_or(0.0) > 360.0 {
+        Err(InvalidAngle::DegreesOutOfRange(angle))
+    } else if minutes.unwrap_or(0.0) >= 60.0 {
+        Err(InvalidAngle::MinutesOutOfRange(angle))
+    } else if seconds.unwrap_or(0.0) >= 60.0 {
+        Err(InvalidAngle::SecondsOutOfRange(angle))
+    } else if angle.value > 360.0 {
+        Err(InvalidAngle::OutOfRange(angle, start.up_to(p.pos())))
+    } else {
+        Ok(Some(NumberOrDMS::DMS(angle)))
     }
 }
 
@@ -1381,17 +1478,30 @@ fn angle_unit_suffix<'i>(p: &mut ParseState<'i>) -> Option<Result<AngleUnit, Inv
         _ => Err(InvalidAngle::InvalidUnit(m)),
     })
 }
+
 fn unsigned_angle<'i>(
     p: &mut ParseState<'i>,
     default_unit: AngleUnit,
 ) -> Result<Option<(Angle, SourceLoc)>, InvalidAngle<'i>> {
     let start = p.pos();
-    // TODO: ddd:mm:ss format
-    if let Some(value) = unsigned_number(p).transpose()? {
-        let unit = angle_unit_suffix(p).transpose()?.unwrap_or(default_unit);
-        Ok(Some((Angle { value, unit }, start.up_to(p.pos()))))
-    } else {
-        Ok(None)
+    match unsigned_number_or_dms(p) {
+        Ok(Some(NumberOrDMS::DMS(angle))) => Ok(Some((angle, start.up_to(p.pos())))),
+        Ok(Some(NumberOrDMS::Number(value))) => {
+            let unit = angle_unit_suffix(p).transpose()?.unwrap_or(default_unit);
+            let angle = Angle::new(value, unit);
+            let loc = start.up_to(p.pos());
+            if match unit {
+                AngleUnit::Degrees => value > 360.0,
+                AngleUnit::Grads => value > 400.0,
+                AngleUnit::Mils => value > 6400.0,
+            } {
+                Err(InvalidAngle::OutOfRange(angle, loc))
+            } else {
+                Ok(Some((angle, loc)))
+            }
+        }
+        Ok(None) => Ok(None),
+        Err(err) => Err(err),
     }
 }
 fn signed_angle<'i>(
@@ -1404,12 +1514,14 @@ fn signed_angle<'i>(
         Some(m) => m.as_str() == "-",
         None => false,
     };
-    if let Some((angle, _)) = unsigned_angle(p, default_unit)? {
+    if let Some((angle, _)) = unsigned_angle(p, default_unit).map_err(|e| match e {
+        InvalidAngle::OutOfRange(angle, loc) => {
+            InvalidAngle::OutOfRange(angle, start.up_to(loc.end))
+        }
+        other => other,
+    })? {
         Ok(Some((
-            Angle {
-                value: if negate { -angle.value } else { angle.value },
-                unit: angle.unit,
-            },
+            if negate { angle.negate() } else { angle },
             start.up_to(p.pos()),
         )))
     } else {
@@ -1418,36 +1530,34 @@ fn signed_angle<'i>(
 }
 
 enum InvalidAzimuth<'i> {
-    InvalidNumber(ParseFloatError, ParseMatch<'i>),
-    InvalidUnit(ParseMatch<'i>),
-}
-
-impl<'i> From<InvalidNumber<'i>> for InvalidAzimuth<'i> {
-    fn from(value: InvalidNumber<'i>) -> Self {
-        InvalidAzimuth::InvalidNumber(value.0, value.1)
-    }
+    InvalidAngle(InvalidAngle<'i>),
 }
 
 impl<'i> From<InvalidAngle<'i>> for InvalidAzimuth<'i> {
     fn from(value: InvalidAngle<'i>) -> Self {
-        match value {
-            InvalidAngle::InvalidNumber(err, m) => InvalidAzimuth::InvalidNumber(err, m),
-            InvalidAngle::InvalidUnit(m) => InvalidAzimuth::InvalidUnit(m),
-        }
+        InvalidAzimuth::InvalidAngle(value)
     }
 }
 
 impl<'i> From<InvalidAzimuth<'i>> for ParseIssue {
     fn from(value: InvalidAzimuth<'i>) -> Self {
         match value {
-            InvalidAzimuth::InvalidNumber(e, m) => {
-                ParseIssue::error(EINVALIDAZIMUTH, Some(e.to_string()), Some(m.loc()))
-            }
-            InvalidAzimuth::InvalidUnit(m) => ParseIssue::error(
+            InvalidAzimuth::InvalidAngle(InvalidAngle::InvalidNumber(value)) => ParseIssue::error(
+                EINVALIDAZIMUTH,
+                Some("Invalid azimuth".into()),
+                Some(value.1.into()),
+            ),
+            InvalidAzimuth::InvalidAngle(InvalidAngle::InvalidUnit(m)) => ParseIssue::error(
                 EINVALIDAZIMUTHUNIT,
                 Some("Invalid azimuth unit".into()),
                 Some(m.loc()),
             ),
+            InvalidAzimuth::InvalidAngle(InvalidAngle::OutOfRange(_, loc)) => ParseIssue::error(
+                EAZIMUTHOUTOFRANGE,
+                Some("Azimuth out of range".into()),
+                Some(loc),
+            ),
+            InvalidAzimuth::InvalidAngle(e) => e.into(),
         }
     }
 }
@@ -1461,29 +1571,45 @@ fn signed_azimuth<'i>(
 }
 
 enum InvalidInclination<'i> {
-    InvalidNumber(ParseFloatError, ParseMatch<'i>),
-    OutOfRange(SourceLoc),
-    InvalidUnit(ParseMatch<'i>),
+    InvalidAngle(InvalidAngle<'i>),
+    OutOfRange(Inclination, SourceLoc),
 }
 
-impl<'i> From<InvalidNumber<'i>> for InvalidInclination<'i> {
-    fn from(value: InvalidNumber<'i>) -> Self {
-        InvalidInclination::InvalidNumber(value.0, value.1)
+impl<'i> From<InvalidAngle<'i>> for InvalidInclination<'i> {
+    fn from(value: InvalidAngle<'i>) -> Self {
+        match value {
+            InvalidAngle::OutOfRange(angle, loc) => {
+                InvalidInclination::OutOfRange(angle.into(), loc)
+            }
+            other => InvalidInclination::InvalidAngle(other),
+        }
     }
 }
 
 impl<'i> From<InvalidInclination<'i>> for ParseIssue {
     fn from(value: InvalidInclination<'i>) -> Self {
         match value {
-            InvalidInclination::InvalidNumber(e, m) => {
-                ParseIssue::error(EINVALIDINCLINATION, Some(e.to_string()), Some(m.loc()))
+            InvalidInclination::InvalidAngle(InvalidAngle::InvalidNumber(value)) => {
+                ParseIssue::error(
+                    EINVALIDINCLINATION,
+                    Some("Invalid inclination".into()),
+                    Some(value.1.into()),
+                )
             }
-            InvalidInclination::InvalidUnit(m) => ParseIssue::error(
+            InvalidInclination::InvalidAngle(InvalidAngle::InvalidUnit(m)) => ParseIssue::error(
                 EINVALIDINCLINATIONUNIT,
                 Some("Invalid inclination unit".into()),
                 Some(m.loc()),
             ),
-            InvalidInclination::OutOfRange(loc) => ParseIssue::error(
+            InvalidInclination::InvalidAngle(InvalidAngle::OutOfRange(_, loc)) => {
+                ParseIssue::error(
+                    EINCLINATIONOUTOFRANGE,
+                    Some("Inclination out of range".into()),
+                    Some(loc),
+                )
+            }
+            InvalidInclination::InvalidAngle(e) => e.into(),
+            InvalidInclination::OutOfRange(_, loc) => ParseIssue::error(
                 EINCLINATIONOUTOFRANGE,
                 Some("Inclination out of range".into()),
                 Some(loc),
@@ -1499,7 +1625,7 @@ fn inclination_unit_suffix<'i>(
         "g" | "G" => Ok(InclinationUnit::Grads),
         "m" | "M" => Ok(InclinationUnit::Mils),
         "p" | "P" => Ok(InclinationUnit::Percent),
-        _ => Err(InvalidInclination::InvalidUnit(m)),
+        _ => Err(InvalidAngle::InvalidUnit(m).into()),
     })
 }
 fn unsigned_inclination<'i>(
@@ -1507,23 +1633,36 @@ fn unsigned_inclination<'i>(
     default_unit: InclinationUnit,
 ) -> Result<Option<(Inclination, SourceLoc)>, InvalidInclination<'i>> {
     let start = p.pos();
-    // TODO: ddd:mm:ss format
-    if let Some(value) = unsigned_number(p).transpose()? {
-        let unit = inclination_unit_suffix(p)
-            .transpose()?
-            .unwrap_or(default_unit);
-        if match unit {
-            InclinationUnit::Degrees => value > 90.0,
-            InclinationUnit::Grads => value > 100.0,
-            InclinationUnit::Mils => value > 1600.0,
-            InclinationUnit::Percent => false,
-        } {
-            Err(InvalidInclination::OutOfRange(start.up_to(p.pos())))
-        } else {
-            Ok(Some((Inclination { value, unit }, start.up_to(p.pos()))))
+    match unsigned_number_or_dms(p) {
+        Ok(Some(NumberOrDMS::DMS(angle))) => {
+            if angle.value > 90.0 {
+                Err(InvalidInclination::OutOfRange(
+                    angle.into(),
+                    start.up_to(p.pos()),
+                ))
+            } else {
+                Ok(Some((angle.into(), start.up_to(p.pos()))))
+            }
         }
-    } else {
-        Ok(None)
+        Ok(Some(NumberOrDMS::Number(value))) => {
+            let unit = inclination_unit_suffix(p)
+                .transpose()?
+                .unwrap_or(default_unit);
+            let inclination = Inclination::new(value, unit);
+            let loc = start.up_to(p.pos());
+            if match unit {
+                InclinationUnit::Degrees => inclination.value > 90.0,
+                InclinationUnit::Grads => inclination.value > 100.0,
+                InclinationUnit::Mils => inclination.value > 1600.0,
+                _ => false,
+            } {
+                Err(InvalidInclination::OutOfRange(inclination, loc))
+            } else {
+                Ok(Some((inclination, loc)))
+            }
+        }
+        Ok(None) => Ok(None),
+        Err(err) => Err(err.into()),
     }
 }
 fn signed_inclination<'i>(
@@ -1538,13 +1677,10 @@ fn signed_inclination<'i>(
     };
     if let Some((inclination, _)) = unsigned_inclination(p, default_unit)? {
         Ok(Some((
-            Inclination {
-                value: if negate {
-                    -inclination.value
-                } else {
-                    inclination.value
-                },
-                unit: inclination.unit,
+            if negate {
+                inclination.negate()
+            } else {
+                inclination
             },
             start.up_to(p.pos()),
         )))

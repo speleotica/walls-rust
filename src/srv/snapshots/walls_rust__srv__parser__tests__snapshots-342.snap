@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incab=6400.01m\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units incab=6400.01m"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              correction: 6400.01m
+              loc: incab=6400.01m
+              locs:
+                correction: 6400.01m
+                option: incab
+              option: BacksightAzimuthCorrection
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EANGLEOUTOFRANGE
+    loc: 6400.01m
+    message: Angle out of range
+    severity: Error

@@ -1,0 +1,25 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incvb=-89:59:59.999\")"
+---
+items:
+  - loc: "#units incvb=-89:59:59.999"
+    locs:
+      directive: "#units"
+    options:
+      - correction:
+          degrees: -89
+          locs:
+            degrees: "89"
+            minutes: "59"
+            seconds: "59.999"
+          minutes: -89
+          seconds: -89
+          unit: Degrees
+          value: -89.99999972222223
+        loc: "incvb=-89:59:59.999"
+        locs:
+          correction: "-89:59:59.999"
+          option: incvb
+        option: BacksightInclinationCorrection
+    type: UnitsDirective

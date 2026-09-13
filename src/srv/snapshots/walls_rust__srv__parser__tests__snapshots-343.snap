@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incvb=2:\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units incvb=2:"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              correction: "2:"
+              loc: "incvb=2:"
+              locs:
+                correction: "2:"
+                option: incvb
+              option: BacksightInclinationCorrection
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EMISSINGMINUTES
+    loc: ""
+    message: Missing minutes
+    severity: Error

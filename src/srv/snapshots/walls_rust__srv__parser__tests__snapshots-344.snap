@@ -1,0 +1,23 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incvb=2:3\")"
+---
+items:
+  - loc: "#units incvb=2:3"
+    locs:
+      directive: "#units"
+    options:
+      - correction:
+          degrees: 2
+          locs:
+            degrees: "2"
+            minutes: "3"
+          minutes: 3
+          unit: Degrees
+          value: 2.05
+        loc: "incvb=2:3"
+        locs:
+          correction: "2:3"
+          option: incvb
+        option: BacksightInclinationCorrection
+    type: UnitsDirective

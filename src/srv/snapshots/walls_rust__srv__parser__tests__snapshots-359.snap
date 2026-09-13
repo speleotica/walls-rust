@@ -1,0 +1,29 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incvb=3:02g\")"
+---
+INVALID:
+  items:
+    - loc: "#units incvb=3:02g"
+      locs:
+        directive: "#units"
+      options:
+        - correction:
+            degrees: 3
+            locs:
+              degrees: "3"
+              minutes: "02"
+            minutes: 2
+            unit: Degrees
+            value: 3.033333333333333
+          loc: "incvb=3:02"
+          locs:
+            correction: "3:02"
+            option: incvb
+          option: BacksightInclinationCorrection
+      type: UnitsDirective
+issues:
+  - code: EUNEXPECTED
+    loc: g
+    message: Unexpected text
+    severity: Error

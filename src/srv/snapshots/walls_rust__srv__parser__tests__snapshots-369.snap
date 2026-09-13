@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incab=::60\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units incab=::60"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              correction: "::60"
+              loc: "incab=::60"
+              locs:
+                correction: "::60"
+                option: incab
+              option: BacksightAzimuthCorrection
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: ESECONDSOUTOFRANGE
+    loc: "60"
+    message: Seconds out of range
+    severity: Error

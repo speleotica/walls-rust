@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incab=400.01g\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units incab=400.01g"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              correction: 400.01g
+              loc: incab=400.01g
+              locs:
+                correction: 400.01g
+                option: incab
+              option: BacksightAzimuthCorrection
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EANGLEOUTOFRANGE
+    loc: 400.01g
+    message: Angle out of range
+    severity: Error

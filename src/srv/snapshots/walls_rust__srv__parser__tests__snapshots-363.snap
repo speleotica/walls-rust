@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incvb=1600.01m\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units incvb=1600.01m"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              correction: 1600.01m
+              loc: incvb=1600.01m
+              locs:
+                correction: 1600.01m
+                option: incvb
+              option: BacksightInclinationCorrection
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EINCLINATIONOUTOFRANGE
+    loc: 1600.01m
+    message: Inclination out of range
+    severity: Error

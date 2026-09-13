@@ -327,6 +327,7 @@ impl<'h> From<ParseMatch<'h>> for core::ops::Range<usize> {
 pub struct ParseState<'i> {
     input: &'i str,
     index: usize,
+    init_pos: SourcePos,
     pos: SourcePos,
 }
 
@@ -345,6 +346,7 @@ impl<'i> ParseState<'i> {
             input,
             index: 0,
             pos,
+            init_pos: pos,
         }
     }
 
@@ -355,6 +357,14 @@ impl<'i> ParseState<'i> {
 
     pub fn pos(&self) -> SourcePos {
         self.pos
+    }
+
+    pub fn slice(&self, start: SourcePos, end: SourcePos) -> ParseMatch<'i> {
+        ParseMatch {
+            str: &self.input
+                [start.byte_pos - self.init_pos.byte_pos..end.byte_pos - self.init_pos.byte_pos],
+            start,
+        }
     }
 
     /// Returns `true` if the current parse index has reached the end of
@@ -507,11 +517,7 @@ mod tests {
 
     #[test]
     fn test_parse_state() {
-        let mut p = ParseState {
-            input: "foobar",
-            index: 0,
-            pos: SourcePos::origin(),
-        };
+        let mut p = ParseState::new("foobar", SourcePos::origin());
 
         let foo = Regex::new(r"^foo").unwrap();
         let bar = Regex::new(r"^bar").unwrap();

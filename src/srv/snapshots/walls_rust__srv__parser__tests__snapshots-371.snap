@@ -1,0 +1,26 @@
+---
+source: src/srv/parser_test.rs
+expression: "&parse(\"#units incab=360::01\")"
+---
+INVALID:
+  items:
+    - INVALID:
+        loc: "#units incab=360::01"
+        locs:
+          directive: "#units"
+        options:
+          - INVALID:
+              correction: "360::01"
+              loc: "incab=360::01"
+              locs:
+                correction: "360::01"
+                option: incab
+              option: BacksightAzimuthCorrection
+            issues:
+              - 0
+        type: UnitsDirective
+issues:
+  - code: EANGLEOUTOFRANGE
+    loc: "360::01"
+    message: Angle out of range
+    severity: Error
