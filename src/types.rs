@@ -126,23 +126,23 @@ pub enum ParseIssueSeverity {
 #[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
-pub struct ParseIssue {
+pub struct ParseIssue<Code> {
     pub severity: ParseIssueSeverity,
-    pub code: String,
+    pub code: Code,
     pub message: Option<String>,
     pub loc: Option<SourceLoc>,
 }
 
-impl ParseIssue {
+impl<Code> ParseIssue<Code> {
     pub fn new(
         severity: ParseIssueSeverity,
-        code: &str,
+        code: Code,
         message: Option<String>,
         loc: Option<SourceLoc>,
-    ) -> ParseIssue {
+    ) -> ParseIssue<Code> {
         ParseIssue {
             severity,
-            code: code.into(),
+            code,
             message,
             loc,
         }
@@ -150,18 +150,22 @@ impl ParseIssue {
     pub fn is_error(&self) -> bool {
         self.severity == ParseIssueSeverity::Error
     }
-    pub fn error(code: &str, message: Option<String>, loc: Option<SourceLoc>) -> ParseIssue {
+    pub fn error(code: Code, message: Option<String>, loc: Option<SourceLoc>) -> ParseIssue<Code> {
         ParseIssue {
             severity: ParseIssueSeverity::Error,
-            code: code.into(),
+            code,
             message,
             loc,
         }
     }
-    pub fn warning(code: &str, message: Option<String>, loc: Option<SourceLoc>) -> ParseIssue {
+    pub fn warning(
+        code: Code,
+        message: Option<String>,
+        loc: Option<SourceLoc>,
+    ) -> ParseIssue<Code> {
         ParseIssue {
             severity: ParseIssueSeverity::Warning,
-            code: code.into(),
+            code,
             message,
             loc,
         }
@@ -373,6 +377,13 @@ impl<'i> ParseState<'i> {
         self.index >= self.input.len()
     }
 
+    /// Returns `true` if `regex` (which must start with ^) matches at
+    /// the current parse index.
+    pub fn peek_is_match(&mut self, regex: &Regex) -> bool {
+        check_parse_regex(regex);
+        regex.is_match(&self.input[self.index..])
+    }
+
     /// Returns a match if `regex` (which must start with ^) matches at
     /// the current parse index.
     pub fn peek(&self, regex: &Regex) -> Option<ParseMatch<'i>> {
@@ -421,6 +432,7 @@ impl<'i> ParseState<'i> {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]

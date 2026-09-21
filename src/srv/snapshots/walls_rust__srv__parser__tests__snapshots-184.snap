@@ -20,11 +20,11 @@ INVALID:
               - 0
         type: UnitsDirective
 issues:
-  - code: EINVALIDINCLINATIONUNIT
+  - code: InvalidInclinationUnit
     loc: q
     message: Invalid inclination unit
     severity: Error
-  - code: EUNEXPECTED
+  - code: Unexpected
     loc: "-"
     message: Unexpected text
     severity: Error

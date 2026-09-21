@@ -20,7 +20,7 @@ INVALID:
               - 0
         type: UnitsDirective
 issues:
-  - code: EINVALIDCASECONVERSION
+  - code: InvalidCaseConversion
     loc: q
     message: Invalid case conversion
     severity: Error

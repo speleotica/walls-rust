@@ -20,7 +20,7 @@ INVALID:
               - 0
         type: UnitsDirective
 issues:
-  - code: EINVALIDAZIMUTH
+  - code: InvalidAzimuth
     loc: a2m
     message: Invalid azimuth
     severity: Error

@@ -24,7 +24,7 @@ INVALID:
               - 0
         type: UnitsDirective
 issues:
-  - code: EMISSINGLRUDSTYLE
+  - code: MissingLrudStyle
     loc: ""
     message: Missing LRUD style
     severity: Error

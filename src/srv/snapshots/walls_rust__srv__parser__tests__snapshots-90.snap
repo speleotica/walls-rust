@@ -20,7 +20,7 @@ INVALID:
               - 0
         type: UnitsDirective
 issues:
-  - code: EINVALIDAZIMUTHUNIT
+  - code: InvalidAzimuthUnit
     loc: q
     message: Invalid azimuth unit
     severity: Error

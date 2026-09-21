@@ -5,22 +5,13 @@ use std::{num::ParseFloatError, sync::LazyLock};
 use crate::{
     srv::types::{
         Angle, AngleLocs, AngleUnit, BacksightOptions, BacksightOptionsLocs, CompassAndTapeItem,
-        CorrectionOptionLocs, EANGLEOUTOFRANGE, EAZIMUTHOUTOFRANGE, EDEGREESOUTOFRANGE,
-        EINCLINATIONOUTOFRANGE, EINVALIDANGLE, EINVALIDANGLEUNIT, EINVALIDAZIMUTH,
-        EINVALIDAZIMUTHUNIT, EINVALIDBACKSIGHTCORRECTED, EINVALIDCASECONVERSION, EINVALIDDIRECTIVE,
-        EINVALIDDONOTAVERAGE, EINVALIDINCLINATION, EINVALIDINCLINATIONUNIT, EINVALIDLENGTH,
-        EINVALIDLENGTHUNIT, EINVALIDLRUDORDER, EINVALIDLRUDORDERITEM, EINVALIDLRUDSTYLE,
-        EINVALIDMEASUREMENTORDER, EINVALIDNUMBER, EINVALIDOPTION, EINVALIDORDERITEM,
-        EINVALIDTAPINGMETHOD, EINVALIDTOLERANCE, EINVALIDUNITVARIANCE, EMINUTESOUTOFRANGE,
-        EMISSINGBACKSIGHTCORRECTED, EMISSINGDONOTAVERAGE, EMISSINGINCHES, EMISSINGLRUDORDER,
-        EMISSINGLRUDSTYLE, EMISSINGMINUTES, EMISSINGSECONDS, EMISSINGTOLERANCE, EMISSINGVALUE,
-        EMISSINGWHITESPACE, ESECONDSOUTOFRANGE, EUNEXPECTED, Inclination, InclinationUnit,
-        InvalidBacksightOptions, InvalidSrvItem, InvalidUnitsOption, InvalidValue,
-        InvalidWallsSrvFile, Length, LengthUnit, LrudItem, LrudOptionLocs, LrudStyle,
-        MaybeValidLrudItem, MaybeValidLrudOrder, MaybeValidLrudStyle, MaybeValidOrderItem,
-        MaybeValidSrvItem, MaybeValidUnitsOption, MaybeValidWallsSrvFile, OrderItem,
-        OrderOptionLocs, PrefixDirectiveLocs, PrefixLevel, RectilinearItem, SrvItem, SrvSettings,
-        StationNameCaseConversion, TapingMethod, UnitsDirectiveLocs, UnitsOption, WallsSrvFile,
+        CorrectionOptionLocs, Inclination, InclinationUnit, InvalidBacksightOptions,
+        InvalidSrvItem, InvalidUnitsOption, InvalidValue, InvalidWallsSrvFile, Length, LengthUnit,
+        LrudItem, LrudOptionLocs, LrudStyle, MaybeValidLrudItem, MaybeValidLrudOrder,
+        MaybeValidLrudStyle, MaybeValidOrderItem, MaybeValidSrvItem, MaybeValidUnitsOption,
+        MaybeValidWallsSrvFile, OrderItem, OrderOptionLocs, PrefixDirectiveLocs, PrefixLevel,
+        RectilinearItem, SrvErrorCode, SrvItem, SrvSettings, StationNameCaseConversion,
+        TapingMethod, UnitsDirectiveLocs, UnitsOption, WallsSrvFile,
     },
     types::{ParseIssue, ParseMatch, ParseState, SourceLoc, SourcePos},
 };
@@ -30,29 +21,36 @@ pub struct WallsSrvParser<'i> {
     line: ParseState<'i>,
     settings: SrvSettings,
     saved_settings: Vec<SrvSettings>,
-    issues: Vec<ParseIssue>,
+    issues: Vec<ParseIssue<SrvErrorCode>>,
 }
 
-const WHITESPACE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\s+").unwrap());
+const WHITESPACE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[ \t]+").unwrap());
 const DIRECTIVE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)#[a-z]+[0-9]*").unwrap());
 const INLINE_COMMENT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^;\s*(.+)").unwrap());
 const CHARACTER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\S").unwrap());
 const INCHES_SUFFIX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)i").unwrap());
 const NAME: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[^:;,#\s]+").unwrap());
+const STATION_NAME: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^([^:;,# \t]*:([^:;,# \t]*:([^:;,# \t]*:)?)?)?[^:;,# \t]+").unwrap()
+});
 const COLON: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^:").unwrap());
 const COMMA: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^,").unwrap());
 const LETTER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)[a-z]").unwrap());
 const UNTIL_COMMA: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[^,]*").unwrap());
-const UNITS_OPTION: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[^:;,#=\"\\s]+").unwrap());
+const UNITS_OPTION: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[^:;,#=\" \\t]+").unwrap());
 const UNEXPECTED_AFTER_UNITS_OPTION: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[^\s;]+").unwrap());
-const UNITS_OPTION_EQUALS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\s*=\s*").unwrap());
-const UNITS_OPTION_VALUE: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[^;#=\"\\s]+").unwrap());
+const UNITS_OPTION_EQUALS: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[ \t]*=[ \t]*").unwrap());
+const UNITS_OPTION_VALUE: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[^;#=\" \\t]+").unwrap());
+const NSEW: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(?i)[nsew]").unwrap());
 const SIGN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[-+]").unwrap());
 const SIGNED_NUMBER: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[-+]?(\d+(\.\d*)?|\.\d+)").unwrap());
 const UNSIGNED_NUMBER: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^(\d+(\.\d*)?|\.\d+)").unwrap());
+const DATA_DELIM: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^([ \t]*,[ \t]*|[ \t]+)").unwrap());
 
 impl<'i> WallsSrvParser<'i> {
     pub fn parse(input: &'i str) -> MaybeValidWallsSrvFile {
@@ -115,19 +113,24 @@ impl<'i> WallsSrvParser<'i> {
         self.line = line;
         self.skip_whitespace();
         if let Some(m) = self.find(&DIRECTIVE) {
-            return Some(self.directive(m));
+            Some(self.directive(m))
+        } else if let Some(item) = self.data_line() {
+            Some(item)
+        } else {
+            self.comment_and_eol().and_then(|m| {
+                Some(
+                    SrvItem::Comment {
+                        comment: m.content(),
+                        inline: true,
+                        loc: Some(m.loc()),
+                    }
+                    .into(),
+                )
+            })
         }
-        // TODO: data lines
-        self.comment_and_eol().and_then(|m| {
-            Some(
-                SrvItem::Comment {
-                    comment: m.content(),
-                    inline: true,
-                    loc: Some(m.loc()),
-                }
-                .into(),
-            )
-        })
+    }
+    fn data_line(&mut self) -> Option<MaybeValidSrvItem> {
+        todo!()
     }
     fn directive(&mut self, directive_match: ParseMatch<'i>) -> MaybeValidSrvItem {
         let directive = directive_match.as_str();
@@ -142,7 +145,7 @@ impl<'i> WallsSrvParser<'i> {
                 loc: Some(loc),
             }
             .with_issue(self.push_error(
-                EINVALIDDIRECTIVE,
+                SrvErrorCode::InvalidDirective,
                 Some("Invalid directive".into()),
                 Some(loc),
             )),
@@ -298,7 +301,7 @@ impl<'i> WallsSrvParser<'i> {
                         loc: Some(m.loc()),
                     }
                     .with_issue(self.push_error(
-                        EUNEXPECTED,
+                        SrvErrorCode::Unexpected,
                         Some("Invalid units option".into()),
                         Some(m.loc()),
                     )),
@@ -311,7 +314,7 @@ impl<'i> WallsSrvParser<'i> {
             if let Some(m) = self.find(&UNEXPECTED_AFTER_UNITS_OPTION) {
                 if &m.as_str()[0..1] == "=" {
                     issues.push(self.push_error(
-                        EUNEXPECTED,
+                        SrvErrorCode::Unexpected,
                         Some("Unexpected #UNITS option value".into()),
                         m.into(),
                     ));
@@ -322,7 +325,7 @@ impl<'i> WallsSrvParser<'i> {
                             loc: Some(m.loc()),
                         }
                         .with_issue(self.push_error(
-                            EINVALIDOPTION,
+                            SrvErrorCode::InvalidOption,
                             Some("Invalid #UNITS option".into()),
                             Some(m.loc()),
                         )),
@@ -379,10 +382,10 @@ impl<'i> WallsSrvParser<'i> {
             _ => {}
         }
     }
-    fn get_option_value(&mut self, what: &str) -> Result<ParseMatch<'i>, ParseIssue> {
+    fn get_option_value(&mut self, what: &str) -> Result<ParseMatch<'i>, ParseIssue<SrvErrorCode>> {
         if !self.is_match(&UNITS_OPTION_EQUALS) {
             Err(ParseIssue::error(
-                EMISSINGVALUE,
+                SrvErrorCode::MissingValue,
                 Some("Missing =".into()),
                 Some(self.pos().into()),
             ))
@@ -390,7 +393,7 @@ impl<'i> WallsSrvParser<'i> {
             Ok(value)
         } else {
             Err(ParseIssue::error(
-                EMISSINGVALUE,
+                SrvErrorCode::MissingValue,
                 Some(format!("Missing {what}").into()),
                 Some(self.pos().into()),
             ))
@@ -399,7 +402,7 @@ impl<'i> WallsSrvParser<'i> {
     fn expect_done(&mut self, parser: &mut ParseState<'i>) {
         if !parser.is_done() {
             self.push_error(
-                EUNEXPECTED,
+                SrvErrorCode::Unexpected,
                 Some("Unexpected text".into()),
                 Some(parser.rest().loc()),
             );
@@ -409,7 +412,7 @@ impl<'i> WallsSrvParser<'i> {
         &mut self,
         option: ParseMatch<'i>,
         what: &str,
-        parse_value: impl Fn(&mut ParseState<'i>) -> Result<V, ParseIssue>,
+        parse_value: impl Fn(&mut ParseState<'i>) -> Result<V, ParseIssue<SrvErrorCode>>,
         valid: impl Fn(V, SourceLoc, Option<SourceLoc>) -> UnitsOption,
         invalid: impl Fn(Option<String>, SourceLoc, Option<SourceLoc>) -> InvalidUnitsOption,
     ) -> MaybeValidUnitsOption {
@@ -471,7 +474,7 @@ impl<'i> WallsSrvParser<'i> {
                         }),
                     },
                     issues: Some(vec![self.push_error(
-                        EINVALIDANGLE,
+                        SrvErrorCode::InvalidAngle,
                         Some("Invalid angle".into()),
                         Some(value.loc()),
                     )]),
@@ -501,7 +504,7 @@ impl<'i> WallsSrvParser<'i> {
                     }),
                 },
                 issues: Some(vec![self.push_error(
-                    EMISSINGVALUE,
+                    SrvErrorCode::MissingValue,
                     Some(format!("Missing angle").into()),
                     Some(self.pos().into()),
                 )]),
@@ -561,7 +564,7 @@ impl<'i> WallsSrvParser<'i> {
                                 invalid => MaybeValidOrderItem::Invalid(InvalidValue {
                                     invalid: invalid.into(),
                                     issues: Some(vec![self.push_error(
-                                        EINVALIDORDERITEM,
+                                        SrvErrorCode::InvalidOrderItem,
                                         Some("Invalid measurement item".into()),
                                         value.slice(byte_pos, byte_pos + c.len_utf8()).into(),
                                     )]),
@@ -580,7 +583,7 @@ impl<'i> WallsSrvParser<'i> {
                             ),
                             issues: all_items_valid.then(|| {
                                 vec![self.push_error(
-                                    EINVALIDMEASUREMENTORDER,
+                                    SrvErrorCode::InvalidMeasurementOrder,
                                     Some("Invalid measurement order".into()),
                                     value.into(),
                                 )]
@@ -617,7 +620,7 @@ impl<'i> WallsSrvParser<'i> {
                     "m" | "meters" => Ok(LengthUnit::Meters),
                     "f" | "feet" => Ok(LengthUnit::Feet),
                     _ => Err(ParseIssue::error(
-                        EINVALIDLENGTHUNIT,
+                        SrvErrorCode::InvalidLengthUnit,
                         Some("Invalid length unit".into()),
                         Some(value.loc()),
                     )),
@@ -643,7 +646,7 @@ impl<'i> WallsSrvParser<'i> {
                     "g" | "grad" | "grads" => Ok(AngleUnit::Grads),
                     "m" | "mil" | "mils" => Ok(AngleUnit::Mils),
                     _ => Err(ParseIssue::error(
-                        EINVALIDAZIMUTHUNIT,
+                        SrvErrorCode::InvalidAzimuthUnit,
                         Some("Invalid azimuth unit".into()),
                         Some(value.loc()),
                     )),
@@ -670,7 +673,7 @@ impl<'i> WallsSrvParser<'i> {
                     "m" | "mil" | "mils" => Ok(InclinationUnit::Mils),
                     "p" | "percent" => Ok(InclinationUnit::Percent),
                     _ => Err(ParseIssue::error(
-                        EINVALIDINCLINATIONUNIT,
+                        SrvErrorCode::InvalidInclinationUnit,
                         Some("Invalid inclination unit".into()),
                         value.into(),
                     )),
@@ -693,7 +696,7 @@ impl<'i> WallsSrvParser<'i> {
             |p| match signed_length(p, default_unit) {
                 Ok(Some((length, _))) => Ok(length),
                 Ok(None) => Err(ParseIssue::error(
-                    EINVALIDLENGTH,
+                    SrvErrorCode::InvalidLength,
                     Some("Invalid length".into()),
                     p.rest().into(),
                 )),
@@ -716,7 +719,7 @@ impl<'i> WallsSrvParser<'i> {
             |p| match signed_angle(p, default_unit) {
                 Ok(Some((angle, _))) => Ok(angle),
                 Ok(None) => Err(ParseIssue::error(
-                    EINVALIDANGLE,
+                    SrvErrorCode::InvalidAngle,
                     Some("Invalid angle".into()),
                     p.rest().into(),
                 )),
@@ -739,7 +742,7 @@ impl<'i> WallsSrvParser<'i> {
             |p| match signed_azimuth(p, default_unit) {
                 Ok(Some((azimuth, _))) => Ok(azimuth),
                 Ok(None) => Err(ParseIssue::error(
-                    EINVALIDAZIMUTH,
+                    SrvErrorCode::InvalidAzimuth,
                     Some("Invalid azimuth".into()),
                     p.rest().into(),
                 )),
@@ -762,7 +765,7 @@ impl<'i> WallsSrvParser<'i> {
             |p| match signed_inclination(p, default_unit) {
                 Ok(Some((inclination, _))) => Ok(inclination),
                 Ok(None) => Err(ParseIssue::error(
-                    EINVALIDINCLINATION,
+                    SrvErrorCode::InvalidInclination,
                     Some("Invalid inclination".into()),
                     p.rest().into(),
                 )),
@@ -788,7 +791,7 @@ impl<'i> WallsSrvParser<'i> {
                     "u" | "upper" => Ok(StationNameCaseConversion::Upper),
                     "m" | "mixed" => Ok(StationNameCaseConversion::Mixed),
                     _ => Err(ParseIssue::error(
-                        EINVALIDCASECONVERSION,
+                        SrvErrorCode::InvalidCaseConversion,
                         Some("Invalid case conversion".into()),
                         value.into(),
                     )),
@@ -815,7 +818,7 @@ impl<'i> WallsSrvParser<'i> {
                     "is" => Ok(TapingMethod::InstrumentToStation),
                     "st" => Ok(TapingMethod::StationToTarget),
                     _ => Err(ParseIssue::error(
-                        EINVALIDTAPINGMETHOD,
+                        SrvErrorCode::InvalidTapingMethod,
                         Some("Invalid taping method".into()),
                         value.into(),
                     )),
@@ -837,7 +840,7 @@ impl<'i> WallsSrvParser<'i> {
             |p| match signed_number(p) {
                 Some(Ok(variance)) => Ok(variance),
                 None | Some(Err(_)) => Err(ParseIssue::error(
-                    EINVALIDUNITVARIANCE,
+                    SrvErrorCode::InvalidUnitVariance,
                     Some("Invalid unit variance".into()),
                     p.rest().into(),
                 )),
@@ -866,7 +869,7 @@ impl<'i> WallsSrvParser<'i> {
                                 _ => MaybeValidLrudStyle::Invalid(InvalidValue {
                                     invalid: m.as_str().into(),
                                     issues: Some(vec![self.push_error(
-                                        EINVALIDLRUDSTYLE,
+                                        SrvErrorCode::InvalidLrudStyle,
                                         Some("Invalid LRUD style".into()),
                                         Some(m.loc()),
                                     )]),
@@ -879,7 +882,7 @@ impl<'i> WallsSrvParser<'i> {
 
                 if style.is_none() {
                     issues.push(self.push_error(
-                        EMISSINGLRUDSTYLE,
+                        SrvErrorCode::MissingLrudStyle,
                         Some("Missing LRUD style".into()),
                         Some(p.pos().into()),
                     ));
@@ -900,7 +903,7 @@ impl<'i> WallsSrvParser<'i> {
                                     _ => MaybeValidLrudItem::Invalid(InvalidValue {
                                         invalid: c.into(),
                                         issues: Some(vec![self.push_error(
-                                            EINVALIDLRUDORDERITEM,
+                                            SrvErrorCode::InvalidLrudOrderItem,
                                             Some("Invalid LRUD order item".into()),
                                             m.slice(byte_pos, byte_pos + c.len_utf8()).into(),
                                         )]),
@@ -935,7 +938,7 @@ impl<'i> WallsSrvParser<'i> {
                                     MaybeValidLrudOrder::Invalid {
                                         invalid: order,
                                         issues: Some(vec![self.push_error(
-                                            EINVALIDLRUDORDER,
+                                            SrvErrorCode::InvalidLrudOrder,
                                             Some("Invalid LRUD order".into()),
                                             Some(m.loc()),
                                         )]),
@@ -946,7 +949,7 @@ impl<'i> WallsSrvParser<'i> {
                         })
                         .or_else(|| {
                             issues.push(self.push_error(
-                                EMISSINGLRUDORDER,
+                                SrvErrorCode::MissingLrudOrder,
                                 Some("Missing LRUD order".into()),
                                 Some(p.pos().into()),
                             ));
@@ -1021,7 +1024,7 @@ impl<'i> WallsSrvParser<'i> {
                                 "" => Err(InvalidValue {
                                     invalid: "".into(),
                                     issues: Some(vec![self.push_error(
-                                        EMISSINGBACKSIGHTCORRECTED,
+                                        SrvErrorCode::MissingBacksightCorrected,
                                         Some("Missing backsight corrected flag".into()),
                                         Some(l.loc()),
                                     )]),
@@ -1029,7 +1032,7 @@ impl<'i> WallsSrvParser<'i> {
                                 invalid => Err(InvalidValue {
                                     invalid: invalid.into(),
                                     issues: Some(vec![self.push_error(
-                                        EINVALIDBACKSIGHTCORRECTED,
+                                        SrvErrorCode::InvalidBacksightCorrected,
                                         Some("Invalid backsight corrected flag".into()),
                                         Some(l.loc()),
                                     )]),
@@ -1049,7 +1052,7 @@ impl<'i> WallsSrvParser<'i> {
                                 Err(InvalidValue {
                                     invalid: field.as_str().into(),
                                     issues: Some(vec![self.push_error(
-                                        EMISSINGTOLERANCE,
+                                        SrvErrorCode::MissingTolerance,
                                         Some("Missing tolerance".into()),
                                         Some(field.loc()),
                                     )]),
@@ -1068,7 +1071,7 @@ impl<'i> WallsSrvParser<'i> {
                                 Err(InvalidValue {
                                     invalid: field.as_str().into(),
                                     issues: Some(vec![self.push_error(
-                                        EINVALIDTOLERANCE,
+                                        SrvErrorCode::InvalidTolerance,
                                         Some("Invalid tolerance".into()),
                                         Some(field.loc()),
                                     )]),
@@ -1089,7 +1092,7 @@ impl<'i> WallsSrvParser<'i> {
                                 "" => Err(InvalidValue {
                                     invalid: "".into(),
                                     issues: Some(vec![self.push_error(
-                                        EMISSINGDONOTAVERAGE,
+                                        SrvErrorCode::MissingDoNotAverage,
                                         Some("Missing do not average flag".into()),
                                         Some(rest.loc()),
                                     )]),
@@ -1097,7 +1100,7 @@ impl<'i> WallsSrvParser<'i> {
                                 invalid => Err(InvalidValue {
                                     invalid: invalid.into(),
                                     issues: Some(vec![self.push_error(
-                                        EINVALIDDONOTAVERAGE,
+                                        SrvErrorCode::InvalidDoNotAverage,
                                         Some("Invalid do not average flag".into()),
                                         Some(rest.loc()),
                                     )]),
@@ -1182,7 +1185,7 @@ impl<'i> WallsSrvParser<'i> {
 
         if !self.skip_whitespace() && !self.line.is_done() {
             self.push_error(
-                EMISSINGWHITESPACE,
+                SrvErrorCode::MissingWhitespace,
                 Some("Missing whitespace".into()),
                 Some(self.pos().into()),
             );
@@ -1220,26 +1223,39 @@ impl<'i> WallsSrvParser<'i> {
         self.skip_whitespace();
         let comment = self.find(&INLINE_COMMENT);
         if let Some(m) = self.find(&CHARACTER) {
-            self.push_error(EUNEXPECTED, Some("Unexpected character".into()), m.into());
+            self.push_error(
+                SrvErrorCode::Unexpected,
+                Some("Unexpected character".into()),
+                m.into(),
+            );
         }
         comment.and_then(|m| Some(CommentMatch(m)))
     }
-    fn push_issue(&mut self, issue: ParseIssue) -> usize {
+    fn push_issue(&mut self, issue: ParseIssue<SrvErrorCode>) -> usize {
         let index = self.issues.len();
         self.issues.push(issue);
         index
     }
     #[inline]
-    fn push_error(&mut self, code: &str, message: Option<String>, loc: Option<SourceLoc>) -> usize {
+    fn push_error(
+        &mut self,
+        code: SrvErrorCode,
+        message: Option<String>,
+        loc: Option<SourceLoc>,
+    ) -> usize {
         self.push_issue(ParseIssue::error(code, message, loc))
     }
 }
 
 struct InvalidNumber<'i>(ParseFloatError, ParseMatch<'i>);
 
-impl<'i> From<InvalidNumber<'i>> for ParseIssue {
+impl<'i> From<InvalidNumber<'i>> for ParseIssue<SrvErrorCode> {
     fn from(e: InvalidNumber<'i>) -> Self {
-        ParseIssue::error(EINVALIDNUMBER, Some("Invalid number".into()), e.1.into())
+        ParseIssue::error(
+            SrvErrorCode::InvalidNumber,
+            Some("Invalid number".into()),
+            e.1.into(),
+        )
     }
 }
 
@@ -1265,19 +1281,21 @@ impl<'i> From<InvalidNumber<'i>> for InvalidLength<'i> {
     }
 }
 
-impl<'i> From<InvalidLength<'i>> for ParseIssue {
+impl<'i> From<InvalidLength<'i>> for ParseIssue<SrvErrorCode> {
     fn from(value: InvalidLength<'i>) -> Self {
         match value {
-            InvalidLength::InvalidNumber(e, m) => {
-                ParseIssue::error(EINVALIDLENGTH, Some(e.to_string()), Some(m.loc()))
-            }
+            InvalidLength::InvalidNumber(e, m) => ParseIssue::error(
+                SrvErrorCode::InvalidLength,
+                Some(e.to_string()),
+                Some(m.loc()),
+            ),
             InvalidLength::InvalidUnit(m) => ParseIssue::error(
-                EINVALIDLENGTHUNIT,
+                SrvErrorCode::InvalidLengthUnit,
                 Some("Invalid length unit".into()),
                 Some(m.loc()),
             ),
             InvalidLength::MissingInches(p) => ParseIssue::error(
-                EMISSINGINCHES,
+                SrvErrorCode::MissingInches,
                 Some("Missing inches".into()),
                 Some(p.into()),
             ),
@@ -1366,46 +1384,46 @@ impl<'i> From<InvalidNumber<'i>> for InvalidAngle<'i> {
     }
 }
 
-impl<'i> From<InvalidAngle<'i>> for ParseIssue {
+impl<'i> From<InvalidAngle<'i>> for ParseIssue<SrvErrorCode> {
     fn from(value: InvalidAngle<'i>) -> Self {
         match value {
             InvalidAngle::InvalidNumber(value) => ParseIssue::error(
-                EINVALIDANGLE,
+                SrvErrorCode::InvalidAngle,
                 Some("Invalid angle".into()),
                 Some(value.1.into()),
             ),
             InvalidAngle::InvalidUnit(m) => ParseIssue::error(
-                EINVALIDANGLEUNIT,
+                SrvErrorCode::InvalidAngleUnit,
                 Some("Invalid angle unit".into()),
                 Some(m.loc()),
             ),
             InvalidAngle::OutOfRange(_, loc) => ParseIssue::error(
-                EANGLEOUTOFRANGE,
+                SrvErrorCode::AngleOutOfRange,
                 Some("Angle out of range".into()),
                 Some(loc),
             ),
             InvalidAngle::MissingMinutes(angle) => ParseIssue::error(
-                EMISSINGMINUTES,
+                SrvErrorCode::MissingMinutes,
                 Some("Missing minutes".into()),
                 angle.locs.map(|l| l.minutes).flatten(),
             ),
             InvalidAngle::MissingSeconds(angle) => ParseIssue::error(
-                EMISSINGSECONDS,
+                SrvErrorCode::MissingSeconds,
                 Some("Missing seconds".into()),
                 angle.locs.map(|l| l.seconds).flatten(),
             ),
             InvalidAngle::DegreesOutOfRange(angle) => ParseIssue::error(
-                EDEGREESOUTOFRANGE,
+                SrvErrorCode::DegreesOutOfRange,
                 Some("Degrees out of range".into()),
                 angle.locs.map(|l| l.degrees).flatten(),
             ),
             InvalidAngle::MinutesOutOfRange(angle) => ParseIssue::error(
-                EMINUTESOUTOFRANGE,
+                SrvErrorCode::MinutesOutOfRange,
                 Some("Minutes out of range".into()),
                 angle.locs.map(|l| l.minutes).flatten(),
             ),
             InvalidAngle::SecondsOutOfRange(angle) => ParseIssue::error(
-                ESECONDSOUTOFRANGE,
+                SrvErrorCode::SecondsOutOfRange,
                 Some("Seconds out of range".into()),
                 angle.locs.map(|l| l.seconds).flatten(),
             ),
@@ -1531,6 +1549,8 @@ fn signed_angle<'i>(
 
 enum InvalidAzimuth<'i> {
     InvalidAngle(InvalidAngle<'i>),
+    MissingEndingDir(ParseMatch<'i>),
+    InvalidEndingDir(ParseMatch<'i>),
 }
 
 impl<'i> From<InvalidAngle<'i>> for InvalidAzimuth<'i> {
@@ -1539,25 +1559,35 @@ impl<'i> From<InvalidAngle<'i>> for InvalidAzimuth<'i> {
     }
 }
 
-impl<'i> From<InvalidAzimuth<'i>> for ParseIssue {
+impl<'i> From<InvalidAzimuth<'i>> for ParseIssue<SrvErrorCode> {
     fn from(value: InvalidAzimuth<'i>) -> Self {
         match value {
             InvalidAzimuth::InvalidAngle(InvalidAngle::InvalidNumber(value)) => ParseIssue::error(
-                EINVALIDAZIMUTH,
+                SrvErrorCode::InvalidAzimuth,
                 Some("Invalid azimuth".into()),
                 Some(value.1.into()),
             ),
             InvalidAzimuth::InvalidAngle(InvalidAngle::InvalidUnit(m)) => ParseIssue::error(
-                EINVALIDAZIMUTHUNIT,
+                SrvErrorCode::InvalidAzimuthUnit,
                 Some("Invalid azimuth unit".into()),
                 Some(m.loc()),
             ),
             InvalidAzimuth::InvalidAngle(InvalidAngle::OutOfRange(_, loc)) => ParseIssue::error(
-                EAZIMUTHOUTOFRANGE,
+                SrvErrorCode::AzimuthOutOfRange,
                 Some("Azimuth out of range".into()),
                 Some(loc),
             ),
             InvalidAzimuth::InvalidAngle(e) => e.into(),
+            InvalidAzimuth::InvalidEndingDir(m) => ParseIssue::error(
+                SrvErrorCode::InvalidEndingDir,
+                Some("Invalid ending dir".into()),
+                Some(m.loc()),
+            ),
+            InvalidAzimuth::MissingEndingDir(m) => ParseIssue::error(
+                SrvErrorCode::MissingEndingDir,
+                Some("Missing ending dir".into()),
+                Some(m.loc()),
+            ),
         }
     }
 }
@@ -1566,8 +1596,79 @@ fn signed_azimuth<'i>(
     p: &mut ParseState<'i>,
     default_unit: AngleUnit,
 ) -> Result<Option<(Angle, SourceLoc)>, InvalidAzimuth<'i>> {
-    // TODO: N50.5W style format
     signed_angle(p, default_unit).map_err(|err| err.into())
+}
+
+#[derive(PartialEq)]
+enum CardinalDirection {
+    North,
+    East,
+    South,
+    West,
+}
+
+impl CardinalDirection {
+    fn as_angle(&self, default_unit: AngleUnit) -> Angle {
+        let right_angle = match default_unit {
+            AngleUnit::Degrees => 90.0,
+            AngleUnit::Grads => 100.0,
+            AngleUnit::Mils => 1600.0,
+        };
+        match self {
+            CardinalDirection::North => Angle::new(0.0, default_unit),
+            CardinalDirection::East => Angle::new(right_angle, default_unit),
+            CardinalDirection::South => Angle::new(right_angle * 2.0, default_unit),
+            CardinalDirection::West => Angle::new(right_angle * 3.0, default_unit),
+        }
+    }
+    fn right_turn(&self) -> CardinalDirection {
+        match self {
+            CardinalDirection::North => CardinalDirection::East,
+            CardinalDirection::East => CardinalDirection::South,
+            CardinalDirection::South => CardinalDirection::West,
+            CardinalDirection::West => CardinalDirection::North,
+        }
+    }
+}
+
+fn cardinal_direction<'i>(p: &mut ParseState<'i>) -> Option<CardinalDirection> {
+    p.find(&NSEW).map(|m| match m.as_str() {
+        "n" | "N" => CardinalDirection::North,
+        "e" | "E" => CardinalDirection::East,
+        "s" | "S" => CardinalDirection::South,
+        "w" | "W" => CardinalDirection::West,
+        _ => unreachable!(),
+    })
+}
+
+fn azimuth<'i>(
+    p: &mut ParseState<'i>,
+    default_unit: AngleUnit,
+) -> Result<Option<(Angle, SourceLoc)>, InvalidAzimuth<'i>> {
+    let start = p.pos();
+    if let Some(starting_dir) = cardinal_direction(p) {
+        if let Some((turn, _)) = unsigned_angle(p, default_unit)? {
+            if let Some(ending_dir) = cardinal_direction(p) {
+                let starting_angle = starting_dir.as_angle(turn.unit);
+                if starting_dir.right_turn() == ending_dir {
+                    Ok(Some((starting_angle + turn, start.up_to(p.pos()))))
+                } else if ending_dir.right_turn() == starting_dir {
+                    Ok(Some((starting_angle - turn, start.up_to(p.pos()))))
+                } else {
+                    Err(InvalidAzimuth::InvalidEndingDir(p.slice(start, p.pos())))
+                }
+            } else {
+                Err(InvalidAzimuth::MissingEndingDir(p.slice(start, p.pos())))
+            }
+        } else {
+            Ok(Some((
+                starting_dir.as_angle(default_unit),
+                start.up_to(p.pos()),
+            )))
+        }
+    } else {
+        unsigned_angle(p, default_unit).map_err(|err| err.into())
+    }
 }
 
 enum InvalidInclination<'i> {
@@ -1586,31 +1687,31 @@ impl<'i> From<InvalidAngle<'i>> for InvalidInclination<'i> {
     }
 }
 
-impl<'i> From<InvalidInclination<'i>> for ParseIssue {
+impl<'i> From<InvalidInclination<'i>> for ParseIssue<SrvErrorCode> {
     fn from(value: InvalidInclination<'i>) -> Self {
         match value {
             InvalidInclination::InvalidAngle(InvalidAngle::InvalidNumber(value)) => {
                 ParseIssue::error(
-                    EINVALIDINCLINATION,
+                    SrvErrorCode::InvalidInclination,
                     Some("Invalid inclination".into()),
                     Some(value.1.into()),
                 )
             }
             InvalidInclination::InvalidAngle(InvalidAngle::InvalidUnit(m)) => ParseIssue::error(
-                EINVALIDINCLINATIONUNIT,
+                SrvErrorCode::InvalidInclinationUnit,
                 Some("Invalid inclination unit".into()),
                 Some(m.loc()),
             ),
             InvalidInclination::InvalidAngle(InvalidAngle::OutOfRange(_, loc)) => {
                 ParseIssue::error(
-                    EINCLINATIONOUTOFRANGE,
+                    SrvErrorCode::InclinationOutOfRange,
                     Some("Inclination out of range".into()),
                     Some(loc),
                 )
             }
             InvalidInclination::InvalidAngle(e) => e.into(),
             InvalidInclination::OutOfRange(_, loc) => ParseIssue::error(
-                EINCLINATIONOUTOFRANGE,
+                SrvErrorCode::InclinationOutOfRange,
                 Some("Inclination out of range".into()),
                 Some(loc),
             ),

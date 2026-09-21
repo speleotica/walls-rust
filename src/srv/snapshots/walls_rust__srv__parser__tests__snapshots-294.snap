@@ -21,7 +21,7 @@ INVALID:
               option: BacksightAzimuthType
         type: UnitsDirective
 issues:
-  - code: EINVALIDBACKSIGHTCORRECTED
+  - code: InvalidBacksightCorrected
     loc: x
     message: Invalid backsight corrected flag
     severity: Error

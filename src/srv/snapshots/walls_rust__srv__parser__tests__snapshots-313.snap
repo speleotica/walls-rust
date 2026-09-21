@@ -25,7 +25,7 @@ INVALID:
                 value: 3
         type: UnitsDirective
 issues:
-  - code: EMISSINGBACKSIGHTCORRECTED
+  - code: MissingBacksightCorrected
     loc: ""
     message: Missing backsight corrected flag
     severity: Error

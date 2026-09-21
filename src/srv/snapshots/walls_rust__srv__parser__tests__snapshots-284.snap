@@ -28,7 +28,7 @@ INVALID:
               style: ToStationBisector
         type: UnitsDirective
 issues:
-  - code: EINVALIDLRUDORDERITEM
+  - code: InvalidLrudOrderItem
     loc: q
     message: Invalid LRUD order item
     severity: Error

@@ -20,7 +20,7 @@ INVALID:
               - 0
         type: UnitsDirective
 issues:
-  - code: EINVALIDANGLEUNIT
+  - code: InvalidAngleUnit
     loc: q
     message: Invalid angle unit
     severity: Error

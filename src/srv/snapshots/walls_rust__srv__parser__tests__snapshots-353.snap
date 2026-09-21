@@ -20,7 +20,7 @@ INVALID:
               - 0
         type: UnitsDirective
 issues:
-  - code: EINCLINATIONOUTOFRANGE
+  - code: InclinationOutOfRange
     loc: "90:00:01"
     message: Inclination out of range
     severity: Error

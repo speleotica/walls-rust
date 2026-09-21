@@ -20,11 +20,11 @@ INVALID:
               - 0
         type: UnitsDirective
 issues:
-  - code: EINVALIDLENGTHUNIT
+  - code: InvalidLengthUnit
     loc: q
     message: Invalid length unit
     severity: Error
-  - code: EUNEXPECTED
+  - code: Unexpected
     loc: "-"
     message: Unexpected text
     severity: Error

@@ -11,7 +11,7 @@ INVALID:
       issues:
         - 0
 issues:
-  - code: EINVALIDDIRECTIVE
+  - code: InvalidDirective
     loc: "#grefix"
     message: Invalid directive
     severity: Error

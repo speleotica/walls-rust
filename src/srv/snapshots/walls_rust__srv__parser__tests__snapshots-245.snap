@@ -12,7 +12,7 @@ INVALID:
       prefix: "="
       type: PrefixDirective
 issues:
-  - code: EMISSINGWHITESPACE
+  - code: MissingWhitespace
     loc: ""
     message: Missing whitespace
     severity: Error

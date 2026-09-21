@@ -27,7 +27,7 @@ INVALID:
                 value: 3
         type: UnitsDirective
 issues:
-  - code: EINVALIDDONOTAVERAGE
+  - code: InvalidDoNotAverage
     loc: xb
     message: Invalid do not average flag
     severity: Error

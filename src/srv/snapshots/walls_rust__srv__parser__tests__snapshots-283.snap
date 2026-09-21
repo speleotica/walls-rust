@@ -28,7 +28,7 @@ INVALID:
               style: ToStationPerpendicular
         type: UnitsDirective
 issues:
-  - code: EINVALIDLRUDORDER
+  - code: InvalidLrudOrder
     loc: lrudd
     message: Invalid LRUD order
     severity: Error

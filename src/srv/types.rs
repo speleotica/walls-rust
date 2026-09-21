@@ -1,9 +1,57 @@
+use std::ops::{Add, Sub};
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use serde_with::skip_serializing_none;
 
 use crate::types::{ParseIssue, SourceLoc};
+
+#[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
+pub enum SrvErrorCode {
+    InvalidDirective,
+    Unexpected,
+    InvalidOption,
+    MissingValue,
+    InvalidOptionValue,
+    InvalidMeasurementOrder,
+    InvalidOrderItem,
+    InvalidNumber,
+    InvalidLength,
+    InvalidLengthUnit,
+    MissingInches,
+    InvalidAngle,
+    InvalidAngleUnit,
+    AngleOutOfRange,
+    MissingMinutes,
+    MissingSeconds,
+    DegreesOutOfRange,
+    MinutesOutOfRange,
+    SecondsOutOfRange,
+    InvalidAzimuth,
+    AzimuthOutOfRange,
+    MissingEndingDir,
+    InvalidEndingDir,
+    InvalidAzimuthUnit,
+    InvalidInclination,
+    InclinationOutOfRange,
+    InvalidInclinationUnit,
+    InvalidCaseConversion,
+    InvalidTapingMethod,
+    InvalidUnitVariance,
+    InvalidLrudStyle,
+    MissingLrudStyle,
+    InvalidLrudOrderItem,
+    InvalidLrudOrder,
+    MissingLrudOrder,
+    MissingWhitespace,
+    InvalidBacksightCorrected,
+    MissingBacksightCorrected,
+    MissingTolerance,
+    InvalidTolerance,
+    InvalidDoNotAverage,
+    MissingDoNotAverage,
+}
 
 #[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
@@ -47,8 +95,14 @@ pub struct InvalidValue {
 #[skip_serializing_none]
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
+/// The type of shot vector: compass and tape (distance, azimuth, inclination)
+/// or rectilinear (easting, northing, elevation)
 pub enum ShotType {
+    /// Indicates shot vectors are defined by distance, azimuth, and inclination
+    /// measurements
     CompassAndTape,
+    /// Indicates shot vectors are defined by easting, northing, and elevation
+    /// measurements
     Rectilinear,
 }
 
@@ -103,8 +157,11 @@ pub enum MaybeValidLength {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum AngleUnit {
+    /// 1 revolution = 360 degrees
     Degrees,
+    /// 1 revolution = 6400 mils
     Mils,
+    /// 1 revolution = 400 grads
     Grads,
 }
 
@@ -112,10 +169,23 @@ pub enum AngleUnit {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct Angle {
+    /// The magnitude of the angle, in units of `unit`.  For a
+    /// degrees-minutes-seconds angle, this will be the converted decimal degrees
+    /// magnitude.
     pub value: f64,
+    /// The unit of the `value`
     pub unit: AngleUnit,
+    /// The original degrees portion of a degrees-minutes-seconds angle,
+    /// if given.  This will be present for literals like `3:05`, `3:05:40`,
+    /// but omitted for literals like `:05`, `::40`.
     pub degrees: Option<f64>,
+    /// The original minutes portion of a degrees-minutes-seconds angle,
+    /// if given.  This will be present for literals like `:05, `3:05`, `3:05:40`,
+    /// but omitted for literals like `3::40`, `::40`.
     pub minutes: Option<f64>,
+    /// The original seconds portion of a degrees-minutes-seconds angle,
+    /// if given.  This will be present for literals like `::40`, `:05:40`, `3:05:40`,
+    /// but omitted for literals like `3:05`, `:05`.
     pub seconds: Option<f64>,
     pub locs: Option<AngleLocs>,
 }
@@ -124,8 +194,14 @@ pub struct Angle {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct AngleLocs {
+    /// The location of the degrees portion of a degrees-minutes-seconds angle,
+    /// if given.
     pub degrees: Option<SourceLoc>,
+    /// The location of the minutes portion of a degrees-minutes-seconds angle,
+    /// if given.
     pub minutes: Option<SourceLoc>,
+    /// The location of the seconds portion of a degrees-minutes-seconds angle,
+    /// if given.
     pub seconds: Option<SourceLoc>,
 }
 
@@ -178,6 +254,60 @@ impl Angle {
     pub fn grads(value: f64) -> Angle {
         Angle::new(value, AngleUnit::Grads)
     }
+    pub fn to_unit(self, unit: AngleUnit) -> Angle {
+        if unit == self.unit {
+            self
+        } else {
+            let degrees = match self.unit {
+                AngleUnit::Degrees => self.value,
+                AngleUnit::Grads => self.value * 90.0 / 100.0,
+                AngleUnit::Mils => self.value * 90.0 / 1600.0,
+            };
+            Angle::new(
+                match unit {
+                    AngleUnit::Degrees => degrees,
+                    AngleUnit::Grads => degrees * 100.0 / 90.0,
+                    AngleUnit::Mils => self.value * 1600.0 / 90.0,
+                },
+                unit,
+            )
+        }
+    }
+    pub fn normalize(self) -> Angle {
+        Angle::new(
+            self.value
+                % match self.unit {
+                    AngleUnit::Degrees => 360.0,
+                    AngleUnit::Grads => 400.0,
+                    AngleUnit::Mils => 6400.0,
+                },
+            self.unit,
+        )
+    }
+}
+
+impl Add for Angle {
+    type Output = Angle;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        if rhs.value == 0.0 {
+            self
+        } else {
+            Angle::new(self.value + rhs.to_unit(self.unit).value, self.unit).normalize()
+        }
+    }
+}
+
+impl Sub for Angle {
+    type Output = Angle;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        if rhs.value == 0.0 {
+            self
+        } else {
+            Angle::new(self.value - rhs.to_unit(self.unit).value, self.unit).normalize()
+        }
+    }
 }
 
 #[skip_serializing_none]
@@ -205,9 +335,13 @@ impl From<InvalidValue> for MaybeValidAngle {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum InclinationUnit {
+    /// 1 revolution = 360 degrees
     Degrees,
+    /// 1 revolution = 6400 mils
     Mils,
+    /// 1 revolution = 400 grads
     Grads,
+    /// Percent grade (rise / run * 100): 100% = 45 degrees
     Percent,
 }
 
@@ -312,8 +446,11 @@ pub enum MaybeValidInclination {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum StationNameCaseConversion {
+    /// Convert station names to uppercase
     Upper,
+    /// Convert station names to lowercase
     Lower,
+    /// Leave station name case as is
     Mixed,
 }
 
@@ -366,9 +503,19 @@ impl From<OrderItem> for MaybeValidOrderItem {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum LrudStyle {
+    /// LRUDs of a shot are associated with the from station and perpendicular
+    /// to the shot (unless a facing azimuth or left/right azimuths are specified)
     FromStationPerpendicular,
+    /// LRUDs of a shot are associated with the to station and perpendicular
+    /// to the shot (unless a facing azimuth or left/right azimuths are specified)
     ToStationPerpendicular,
+    /// LRUDs of a shot are associated with the from station and bisect
+    /// the angle between the shot and the preceeding shot
+    /// (unless a facing azimuth or left/right azimuths are specified)
     FromStationBisector,
+    /// LRUDs of a shot are associated with the to station and bisect
+    /// the angle between the shot and the succeeding shot
+    /// (unless a facing azimuth or left/right azimuths are specified)
     ToStationBisector,
 }
 
@@ -447,6 +594,8 @@ impl Into<MaybeValidLrudItem> for InvalidValue {
 #[schemars(deny_unknown_fields)]
 #[serde(untagged)]
 pub enum MaybeValidLrudOrder {
+    /// # LrudOrder
+    /// The order in which LRUD measurements are specified
     Valid([LrudItem; 4]),
     Invalid {
         #[serde(rename = "INVALID")]
@@ -483,9 +632,22 @@ impl Into<Result<[LrudItem; 4], MaybeValidLrudOrder>> for MaybeValidLrudOrder {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub enum TapingMethod {
+    /// Indicates the distance of a shot is measured from the instrument to
+    /// the target (either of which may be above or below the FROm/TO station,
+    /// if `instrument_height`/`target_height` are given)
     InstrumentToTarget,
+    /// Indicates the distance of a shot is measured from station to station,
+    /// even if the inclination instrument and/or target positions are above
+    /// or below the FROm/TO station, if `instrument_height`/`target_height`
+    /// are given)
     StationToStation,
+    /// Indicates the distance of a shot is measured from the inclination
+    /// instrument to the TO station, even if the inclination target position
+    /// is above or below the TO station, if `target_height` is given)
     InstrumentToStation,
+    /// Indicates the distance of a shot is measured from the FROM
+    /// station to the inclination target, even if the inclination instrument
+    /// position is above or below the FROM station, if `instrument_height` is given)
     StationToTarget,
 }
 
@@ -493,32 +655,65 @@ pub enum TapingMethod {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct SrvSettings {
+    /// The type of shot vector: compass and tape (distance, azimuth, inclination)
+    /// or rectilinear (easting, northing, elevation)
     pub shot_type: ShotType,
+    /// The order of distance, azimuth, and (optionally) inclination measurements
+    /// when the `shot_type` is `CompassAndTape`
     pub compass_and_tape_order: Vec<CompassAndTapeItem>,
+    /// The order of easting, northing, and (optionally) elevation measurements
+    /// when the `shot_type` is `Rectilinear`
     pub rectilinear_order: Vec<RectilinearItem>,
+    /// The default unit for all distances except LRUDs and instrument/target heights
     pub primary_distance_unit: LengthUnit,
+    /// The default unit LRUDs and instrument/target heights
     pub secondary_distance_unit: LengthUnit,
+    /// The default unit for frontsight azimuth measurements
     pub frontsight_azimuth_unit: AngleUnit,
+    /// The default unit for backsight azimuth measurements
     pub backsight_azimuth_unit: AngleUnit,
+    /// The default unit for frontsight inclination measurements
     pub frontsight_inclination_unit: InclinationUnit,
+    /// The default unit for backsight inclination measurements
     pub backsight_inclination_unit: InclinationUnit,
-    pub magnetic_declination: Angle,
-    pub grid_north_correction: Angle,
+    /// The magnetic declination.  If omitted, it may be derived from the `#DATE`,
+    /// otherwise it defaults to 0
+    pub magnetic_declination: Option<Angle>,
+    pub grid_north_correction: Option<Angle>,
     pub rectilinear_north_correction: Angle,
+    /// Correction that should be applied to the distance measurements of
+    /// `CompassAndTape` shots, except when the distance is zero.
     pub primary_distance_correction: Length,
+    /// Correction that should be applied to LRUDs and instrument/target heights
     pub secondary_distance_correction: Length,
+    /// Correction that should be applied to frontsight azimuth measurements
     pub frontsight_azimuth_correction: Angle,
+    /// Correction that should be applied to backsight azimuth measurements
     pub backsight_azimuth_correction: Angle,
+    /// Correction that should be applied to frontsight inclination measurements
+    /// (except for pure vertical shots)
     pub frontsight_inclination_correction: Inclination,
+    /// Correction that should be applied to backsight inclination measurements
+    /// (except for pure vertical shots)
     pub backsight_inclination_correction: Inclination,
+    /// An additional vertical adjustment that should be added to the computed
+    /// elevation of the TO station with respect to the FROM station
+    /// (except for pure vertical shots)
     pub height_adjustment: Length,
+    /// Options for backsight azimuth measurements
     pub backsight_azimuth_options: BacksightOptions,
+    /// Options for backsight inclination measurements
     pub backsight_inclination_options: BacksightOptions,
+    /// Case conversion that should be applied to station names
     pub station_name_case_conversion: StationNameCaseConversion,
+    /// The style of LRUD measurements (whether they're associated with the
+    /// FROM or TO station, and how they're angled)
     pub lrud_style: LrudStyle,
+    /// The order of LRUD measurements
     pub lrud_order: [LrudItem; 4],
-    /// [ PREFIX1, PREFIX2, PREFIX3 ]
+    /// Default prefixes that should be applied to station names (`[ PREFIX1, PREFIX2, PREFIX3 ]`)
     pub prefix: [String; 3],
+    /// How distance measurements are defined for shots with instrument and/or target heights
     pub taping_method: TapingMethod,
     pub horizontal_unit_variance: f64,
     pub vertical_unit_variance: f64,
@@ -546,8 +741,8 @@ impl SrvSettings {
             backsight_azimuth_unit: AngleUnit::Degrees,
             frontsight_inclination_unit: InclinationUnit::Degrees,
             backsight_inclination_unit: InclinationUnit::Degrees,
-            magnetic_declination: Angle::degrees(0.0),
-            grid_north_correction: Angle::degrees(0.0),
+            magnetic_declination: None,
+            grid_north_correction: None,
             rectilinear_north_correction: Angle::degrees(0.0),
             primary_distance_correction: Length::meters(0.0),
             secondary_distance_correction: Length::meters(0.0),
@@ -648,7 +843,7 @@ impl SrvSettings {
                 correction,
                 loc: _,
                 locs: _,
-            } => self.grid_north_correction = *correction,
+            } => self.grid_north_correction = Some(*correction),
             UnitsOption::HeightAdjustment {
                 correction,
                 loc: _,
@@ -693,7 +888,7 @@ impl SrvSettings {
                 declination,
                 loc: _,
                 locs: _,
-            } => self.magnetic_declination = *declination,
+            } => self.magnetic_declination = Some(*declination),
             UnitsOption::Prefix {
                 level,
                 prefix,
@@ -752,8 +947,15 @@ impl SrvSettings {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct BacksightOptions {
+    /// If true, backsight measurements are "corrected" (inverted to match
+    /// the facing direction of the frontsight measurements)
     pub is_corrected: bool,
+    /// The maximum difference between frontsight and backsight measurements
+    /// to tolerate without logging and error
     pub tolerance: Angle,
+    /// If true, only the frontsight measurement should be used for calculating
+    /// station positions.  Otherwise, the average of the frontsight and
+    /// backsight measurements should be used
     pub do_not_average: bool,
 }
 
@@ -771,9 +973,13 @@ impl BacksightOptions {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug, Copy, Clone)]
 #[schemars(deny_unknown_fields)]
 pub struct BacksightOptionsLocs {
+    /// The location of the `TYPEAB` or `TYPEVB` text
     pub option: Option<SourceLoc>,
+    /// The location of the corrected flag (`N` or `C`)
     pub is_corrected: Option<SourceLoc>,
+    /// The location of the tolerance
     pub tolerance: Option<SourceLoc>,
+    /// The location of the do not average flag (`X`)
     pub do_not_average: Option<SourceLoc>,
 }
 
@@ -843,194 +1049,224 @@ impl From<usize> for PrefixLevel {
 #[serde(tag = "option")]
 #[schemars(deny_unknown_fields)]
 pub enum UnitsOption {
-    #[schemars(title = "CompassAndTapeOption")]
+    /// # CompassAndTapeOption
+    /// A `CT` option, which indicates shot vectors are defined with
+    /// distance, azimuth, and inclination measurements
     CompassAndTape { loc: Option<SourceLoc> },
-    #[schemars(title = "RectilinearOption")]
+    /// # RectilinearOption
+    /// A `RECT` option, which indicates shot vectors are defined with
+    /// easting, northing, and elevation measurements
     Rectilinear { loc: Option<SourceLoc> },
-    #[schemars(title = "CompassAndTapeOrderOption")]
+    /// # CompassAndTapeOrderOption
+    /// An `ORDER` option for `CompassAndTape` measurements
     CompassAndTapeOrder {
+        /// The order of the distance, azimuth, and (optionally) inclination
+        /// measurements
         order: Vec<CompassAndTapeItem>,
         loc: Option<SourceLoc>,
         locs: Option<OrderOptionLocs>,
     },
-    #[schemars(title = "RectilinearOrderOption")]
+    /// # RectilinearOrderOption
+    /// An `ORDER` option for `Rectilinear` measurements
     RectilinearOrder {
+        /// The order of the easting, northing, and (optionally) elevation
+        /// measurements
         order: Vec<RectilinearItem>,
         loc: Option<SourceLoc>,
         locs: Option<OrderOptionLocs>,
     },
-    #[schemars(title = "FrontsightAzimuthUnitOption")]
+    /// # FrontsightAzimuthUnitOption
+    /// An `A=` option, the default unit for frontsight azimuth measurements
     FrontsightAzimuthUnit {
+        /// the default unit for frontsight azimuth measurements
         unit: AngleUnit,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
-    #[schemars(title = "BacksightAzimuthUnitOption")]
+    /// # BacksightAzimuthUnitOption
+    /// An `AB=` option, the default unit for backsight azimuth measurements
     BacksightAzimuthUnit {
+        /// the default unit for backsight azimuth measurements
         unit: AngleUnit,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
-    #[schemars(title = "PrimaryDistanceUnitOption")]
+    /// # PrimaryDistanceUnitOption
+    /// An `D=` option, the default unit for all distances except LRUDs,
+    /// instrument and target heights
     PrimaryDistanceUnit {
+        /// the default unit for all distances except LRUDs,
+        /// instrument and target heights
         unit: LengthUnit,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
-    #[schemars(title = "SecondaryDistanceUnitOption")]
+    /// # SecondaryDistanceUnitOption
+    /// An `S=` option, the default unit for LRUDs, instrument and target heights
     SecondaryDistanceUnit {
+        /// the default unit for LRUDs, instrument and target heights
         unit: LengthUnit,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
-    #[schemars(title = "DistanceUnitOption")]
+    /// # DistanceUnitOption
+    /// A `Feet` or `Meters` option, the default unit for all distances
     DistanceUnit {
         unit: LengthUnit,
         loc: Option<SourceLoc>,
     },
-    #[schemars(title = "FrontsightInclinationUnitOption")]
+    /// # FrontsightInclinationUnitOption
+    /// A `V=` option, the default unit for frontsight inclination measurements
     FrontsightInclinationUnit {
+        /// the default unit for frontsight inclination measurements
         unit: InclinationUnit,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
-    #[schemars(title = "BacksightInclinationUnitOption")]
+    /// # BacksightInclinationUnitOption
+    /// A `VB=` option, the default unit for backsight inclination measurements
     BacksightInclinationUnit {
+        /// the default unit for backsight inclination measurements
         unit: InclinationUnit,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
-    #[schemars(title = "MagneticDeclinationOption")]
+    /// # MagneticDeclinationOption
+    /// A `DECL=` option, the magnetic declination angle
+    /// (true north minus magnetic north)
     MagneticDeclination {
+        /// the magnetic declination angle
+        /// (true north minus magnetic north)
         declination: Angle,
         loc: Option<SourceLoc>,
         locs: Option<DeclinationOptionLocs>,
     },
-    #[schemars(title = "GridNorthCorrectionOption")]
+    /// # GridNorthCorrectionOption
+    /// A `GRID=` option,
     GridNorthCorrection {
         correction: Angle,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "RectilinearNorthCorrectionOption")]
+    /// # RectilinearNorthCorrectionOption
     RectilinearNorthCorrection {
         correction: Angle,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "PrimaryDistanceCorrectionOption")]
+    /// # PrimaryDistanceCorrectionOption
     PrimaryDistanceCorrection {
         correction: Length,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "SecondaryDistanceCorrectionOption")]
+    /// # SecondaryDistanceCorrectionOption
     SecondaryDistanceCorrection {
         correction: Length,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "FrontsightAzimuthCorrectionOption")]
+    /// # FrontsightAzimuthCorrectionOption
     FrontsightAzimuthCorrection {
         correction: Angle,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "BacksightAzimuthCorrectionOption")]
+    /// # BacksightAzimuthCorrectionOption
     BacksightAzimuthCorrection {
         correction: Angle,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "FrontsightInclinationCorrectionOption")]
+    /// # FrontsightInclinationCorrectionOption
     FrontsightInclinationCorrection {
         correction: Inclination,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "FrontsightInclinationCorrectionOption")]
+    /// # FrontsightInclinationCorrectionOption
     BacksightInclinationCorrection {
         correction: Inclination,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "HeightAdjustmentOption")]
+    /// # HeightAdjustmentOption
     HeightAdjustment {
         correction: Length,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "BacksightAzimuthType")]
+    /// # BacksightAzimuthType
     BacksightAzimuthType {
         #[serde(flatten)]
         options: BacksightOptions,
         loc: Option<SourceLoc>,
         locs: Option<BacksightOptionsLocs>,
     },
-    #[schemars(title = "BacksightInclinationType")]
+    /// # BacksightInclinationType
     BacksightInclinationType {
         #[serde(flatten)]
         options: BacksightOptions,
         loc: Option<SourceLoc>,
         locs: Option<BacksightOptionsLocs>,
     },
-    #[schemars(title = "ResetOption")]
+    /// # ResetOption
     Reset { loc: Option<SourceLoc> },
-    #[schemars(title = "SaveOption")]
+    /// # SaveOption
     Save { loc: Option<SourceLoc> },
-    #[schemars(title = "RestoreOption")]
+    /// # RestoreOption
     Restore { loc: Option<SourceLoc> },
-    #[schemars(title = "StationNameCaseOption")]
+    /// # StationNameCaseOption
     StationNameCase {
         conversion: StationNameCaseConversion,
         loc: Option<SourceLoc>,
         locs: Option<StationNameCaseOptionLocs>,
     },
-    #[schemars(title = "LrudOption")]
+    /// # LrudOption
     Lrud {
         style: LrudStyle,
         order: Option<[LrudItem; 4]>,
         loc: Option<SourceLoc>,
         locs: Option<LrudOptionLocs>,
     },
-    #[schemars(title = "PrefixOption")]
+    /// # PrefixOption
     Prefix {
         level: PrefixLevel,
         prefix: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<PrefixOptionLocs>,
     },
-    #[schemars(title = "TapingMethodOption")]
+    /// # TapingMethodOption
     TapingMethod {
         method: TapingMethod,
         loc: Option<SourceLoc>,
         locs: Option<TapingMethodOptionLocs>,
     },
-    #[schemars(title = "UnitVarianceOption")]
+    /// # UnitVarianceOption
     UnitVariance {
         variance: f64,
         loc: Option<SourceLoc>,
         locs: Option<VarianceOptionLocs>,
     },
-    #[schemars(title = "HorizontalUnitVarianceOption")]
+    /// # HorizontalUnitVarianceOption
     HorizontalUnitVariance {
         variance: f64,
         loc: Option<SourceLoc>,
         locs: Option<VarianceOptionLocs>,
     },
-    #[schemars(title = "VerticalUnitVarianceOption")]
+    /// # VerticalUnitVarianceOption
     VerticalUnitVariance {
         variance: f64,
         loc: Option<SourceLoc>,
         locs: Option<VarianceOptionLocs>,
     },
-    #[schemars(title = "FlagOption")]
+    /// # FlagOption
     Flag {
         flag: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<FlagOptionLocs>,
     },
-    #[schemars(title = "MacroOption")]
+    /// # MacroOption
     Macro {
         name: String,
         value: Option<String>,
@@ -1497,167 +1733,167 @@ pub struct MacroOptionLocs {
 #[schemars(deny_unknown_fields)]
 #[serde(tag = "option")]
 pub enum InvalidUnitsOption {
-    #[schemars(title = "InvalidOrderOption")]
+    /// # InvalidOrderOption
     Order {
         order: Option<Vec<MaybeValidOrderItem>>,
         loc: Option<SourceLoc>,
         locs: Option<OrderOptionLocs>,
     },
-    #[schemars(title = "InvalidFrontsightAzimuthUnitOption")]
+    /// # InvalidFrontsightAzimuthUnitOption
     FrontsightAzimuthUnit {
         unit: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
-    #[schemars(title = "InvalidBacksightAzimuthUnitOption")]
+    /// # InvalidBacksightAzimuthUnitOption
     BacksightAzimuthUnit {
         unit: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
-    #[schemars(title = "InvalidPrimaryDistanceUnitOption")]
+    /// # InvalidPrimaryDistanceUnitOption
     PrimaryDistanceUnit {
         unit: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
-    #[schemars(title = "InvalidSecondaryDistanceUnitOption")]
+    /// # InvalidSecondaryDistanceUnitOption
     SecondaryDistanceUnit {
         unit: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
-    #[schemars(title = "InvalidFrontsightInclinationUnitOption")]
+    /// # InvalidFrontsightInclinationUnitOption
     FrontsightInclinationUnit {
         unit: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
-    #[schemars(title = "InvalidBacksightInclinationUnitOption")]
+    /// # InvalidBacksightInclinationUnitOption
     BacksightInclinationUnit {
         unit: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitOptionLocs>,
     },
-    #[schemars(title = "InvalidMagneticDeclinationOption")]
+    /// # InvalidMagneticDeclinationOption
     MagneticDeclination {
         declination: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<DeclinationOptionLocs>,
     },
-    #[schemars(title = "InvalidGridNorthCorrectionOption")]
+    /// # InvalidGridNorthCorrectionOption
     GridNorthCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "InvalidRectilinearNorthCorrectionOption")]
+    /// # InvalidRectilinearNorthCorrectionOption
     RectilinearNorthCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "InvalidPrimaryDistanceCorrectionOption")]
+    /// # InvalidPrimaryDistanceCorrectionOption
     PrimaryDistanceCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "InvalidSecondaryDistanceCorrectionOption")]
+    /// # InvalidSecondaryDistanceCorrectionOption
     SecondaryDistanceCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "InvalidFrontsightAzimuthCorrectionOption")]
+    /// # InvalidFrontsightAzimuthCorrectionOption
     FrontsightAzimuthCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "InvalidBacksightAzimuthCorrectionOption")]
+    /// # InvalidBacksightAzimuthCorrectionOption
     BacksightAzimuthCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "InvalidFrontsightInclinationCorrectionOption")]
+    /// # InvalidFrontsightInclinationCorrectionOption
     FrontsightInclinationCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "InvalidBacksightInclinationCorrectionOption")]
+    /// # InvalidBacksightInclinationCorrectionOption
     BacksightInclinationCorrection {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "InvalidHeightAdjustmentOption")]
+    /// # InvalidHeightAdjustmentOption
     HeightAdjustment {
         correction: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<CorrectionOptionLocs>,
     },
-    #[schemars(title = "InvalidBacksightAzimuthType")]
+    /// # InvalidBacksightAzimuthType
     BacksightAzimuthType {
         #[serde(flatten)]
         options: InvalidBacksightOptions,
         loc: Option<SourceLoc>,
         locs: Option<BacksightOptionsLocs>,
     },
-    #[schemars(title = "InvalidBacksightInclinationType")]
+    /// # InvalidBacksightInclinationType
     BacksightInclinationType {
         #[serde(flatten)]
         options: InvalidBacksightOptions,
         loc: Option<SourceLoc>,
         locs: Option<BacksightOptionsLocs>,
     },
-    #[schemars(title = "InvalidStationNameCaseOption")]
+    /// # InvalidStationNameCaseOption
     StationNameCase {
         conversion: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<StationNameCaseOptionLocs>,
     },
-    #[schemars(title = "InvalidLrudOption")]
+    /// # InvalidLrudOption
     Lrud {
         style: Option<MaybeValidLrudStyle>,
         order: Option<MaybeValidLrudOrder>,
         loc: Option<SourceLoc>,
         locs: Option<LrudOptionLocs>,
     },
-    #[schemars(title = "InvalidTapingMethodOption")]
+    /// # InvalidTapingMethodOption
     TapingMethod {
         method: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<TapingMethodOptionLocs>,
     },
-    #[schemars(title = "InvalidUnitVarianceOption")]
+    /// # InvalidUnitVarianceOption
     UnitVariance {
         variance: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<VarianceOptionLocs>,
     },
-    #[schemars(title = "InvalidHorizontalUnitVarianceOption")]
+    /// # InvalidHorizontalUnitVarianceOption
     HorizontalUnitVariance {
         variance: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<VarianceOptionLocs>,
     },
-    #[schemars(title = "InvalidVerticalUnitVarianceOption")]
+    /// # InvalidVerticalUnitVarianceOption
     VerticalUnitVariance {
         variance: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<VarianceOptionLocs>,
     },
-    #[schemars(title = "InvalidMacroOption")]
+    /// # InvalidMacroOption
     Macro {
         name: Option<String>,
         value: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<MacroOptionLocs>,
     },
-    #[schemars(title = "InvalidUnknownOption")]
+    /// # InvalidUnknownOption
     Unknown {
         value: String,
         loc: Option<SourceLoc>,
@@ -2040,12 +2276,14 @@ impl From<UnitsOption> for MaybeValidUnitsOption {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub enum FixLocation {
+    /// # LatLongFixLocation
     LatLong {
         latitude: Angle,
         longitude: Angle,
         elevation: Length,
         loc: Option<SourceLoc>,
     },
+    /// # GridFixLocation
     Grid {
         easting: Length,
         northing: Length,
@@ -2058,12 +2296,14 @@ pub enum FixLocation {
 #[derive(JsonSchema, Serialize, Deserialize, PartialEq, Debug)]
 #[schemars(deny_unknown_fields)]
 pub enum InvalidFixLocation {
+    /// # InvalidLatLongFixLocation
     LatLong {
         latitude: Option<MaybeValidAngle>,
         longitude: Option<MaybeValidAngle>,
         elevation: Option<MaybeValidLength>,
         loc: Option<SourceLoc>,
     },
+    /// # InvalidGridFixLocation
     Grid {
         easting: Option<MaybeValidLength>,
         northing: Option<MaybeValidLength>,
@@ -2090,13 +2330,13 @@ pub enum MaybeValidFixLocation {
 #[serde(tag = "type")]
 #[schemars(deny_unknown_fields)]
 pub enum VarianceAssignment {
-    #[schemars(title = "LengthVarianceAssignment")]
+    /// # LengthVarianceAssignment
     Length { length: Length },
-    #[schemars(title = "RMSErrorVarianceAssignment")]
+    /// # RMSErrorVarianceAssignment
     RMSError { length: Length },
-    #[schemars(title = "FloatShotVarianceAssignment")]
+    /// # FloatShotVarianceAssignment
     FloatShot,
-    #[schemars(title = "FloatTraverseVarianceAssignment")]
+    /// # FloatTraverseVarianceAssignment
     FloatTraverse,
 }
 
@@ -2105,11 +2345,11 @@ pub enum VarianceAssignment {
 #[serde(tag = "type")]
 #[schemars(deny_unknown_fields)]
 pub enum InvalidVarianceAssignment {
-    #[schemars(title = "InvalidLengthVarianceAssignment")]
+    /// # InvalidLengthVarianceAssignment
     Length { length: String },
-    #[schemars(title = "InvalidVarianceAssignment")]
+    /// # InvalidVarianceAssignment
     RMSError { length: String },
-    #[schemars(title = "UnknownVarianceAssignment")]
+    /// # UnknownVarianceAssignment
     Unknown { value: String },
 }
 
@@ -2247,6 +2487,7 @@ pub enum MaybeValidColor {
 #[schemars(deny_unknown_fields)]
 #[serde(tag = "type")]
 pub enum ShotMeasurements {
+    /// # CompassAndTapeShotMeasurements
     CompassAndTape {
         distance: Length,
         frontsight_azimuth: Option<Angle>,
@@ -2257,6 +2498,7 @@ pub enum ShotMeasurements {
         target_height: Option<Length>,
         locs: Option<CompassAndTapeLocs>,
     },
+    /// # RectilinearShotMeasurements
     Rectilinear {
         easting: Length,
         northing: Length,
@@ -2292,6 +2534,7 @@ pub struct RectilinearLocs {
 #[schemars(deny_unknown_fields)]
 #[serde(tag = "type")]
 pub enum InvalidShotMeasurements {
+    /// # InvalidCompassAndTapeShotMeasurements
     CompassAndTape {
         distance: MaybeValidLength,
         frontsight_azimuth: Option<MaybeValidAngle>,
@@ -2302,6 +2545,7 @@ pub enum InvalidShotMeasurements {
         target_height: Option<MaybeValidLength>,
         locs: Option<CompassAndTapeLocs>,
     },
+    /// # InvalidRectilinearShotMeasurements
     Rectilinear {
         easting: MaybeValidLength,
         northing: MaybeValidLength,
@@ -2328,21 +2572,21 @@ pub enum MaybeValidShotMeasurements {
 #[schemars(deny_unknown_fields, _unstable_ref_variants)]
 #[serde(tag = "type")]
 pub enum SrvItem {
-    #[schemars(title = "UnitsDirective")]
+    /// # UnitsDirective
     UnitsDirective {
         options: Vec<UnitsOption>,
         comment: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitsDirectiveLocs>,
     },
-    #[schemars(title = "SegmentDirective")]
+    /// # SegmentDirective
     SegmentDirective {
         segment: String,
         comment: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<SymbolDirectiveLocs>,
     },
-    #[schemars(title = "FixDirective")]
+    /// # FixDirective
     FixDirective {
         station: String,
         location: FixLocation,
@@ -2354,7 +2598,7 @@ pub enum SrvItem {
         loc: Option<SourceLoc>,
         locs: Option<FixDirectiveLocs>,
     },
-    #[schemars(title = "PrefixDirective")]
+    /// # PrefixDirective
     PrefixDirective {
         level: PrefixLevel,
         prefix: Option<String>,
@@ -2362,7 +2606,7 @@ pub enum SrvItem {
         loc: Option<SourceLoc>,
         locs: Option<PrefixDirectiveLocs>,
     },
-    #[schemars(title = "NoteDirective")]
+    /// # NoteDirective
     NoteDirective {
         station: String,
         note: String,
@@ -2370,7 +2614,7 @@ pub enum SrvItem {
         loc: Option<SourceLoc>,
         locs: Option<NoteDirectiveLocs>,
     },
-    #[schemars(title = "FlagDirective")]
+    /// # FlagDirective
     FlagDirective {
         stations: Vec<String>,
         flag: String,
@@ -2378,7 +2622,7 @@ pub enum SrvItem {
         loc: Option<SourceLoc>,
         locs: Option<FlagDirectiveLocs>,
     },
-    #[schemars(title = "SymbolDirective")]
+    /// # SymbolDirective
     SymbolDirective {
         opacity: Option<SymbolOpacity>,
         shape: Option<SymbolShape>,
@@ -2389,7 +2633,7 @@ pub enum SrvItem {
         loc: Option<SourceLoc>,
         locs: Option<SymbolDirectiveLocs>,
     },
-    #[schemars(title = "DateDirective")]
+    /// # DateDirective
     DateDirective {
         year: u32,
         month: u8,
@@ -2398,7 +2642,7 @@ pub enum SrvItem {
         loc: Option<SourceLoc>,
         locs: Option<DateDirectiveLocs>,
     },
-    #[schemars(title = "Shot")]
+    /// # Shot
     Shot {
         from: Option<String>,
         to: Option<String>,
@@ -2418,7 +2662,7 @@ pub enum SrvItem {
         loc: Option<SourceLoc>,
         locs: Option<ShotLocs>,
     },
-    #[schemars(title = "Comment")]
+    /// # Comment
     Comment {
         comment: String,
         inline: bool,
@@ -2527,14 +2771,14 @@ pub struct ShotLocs {
 #[schemars(deny_unknown_fields)]
 #[serde(tag = "type")]
 pub enum InvalidSrvItem {
-    #[schemars(title = "InvalidUnitsDirective")]
+    /// # InvalidUnitsDirective
     UnitsDirective {
         options: Vec<MaybeValidUnitsOption>,
         comment: Option<String>,
         loc: Option<SourceLoc>,
         locs: Option<UnitsDirectiveLocs>,
     },
-    #[schemars(title = "InvalidFixDirective")]
+    /// # InvalidFixDirective
     FixDirective {
         station: Option<String>,
         location: Option<MaybeValidFixLocation>,
@@ -2546,7 +2790,7 @@ pub enum InvalidSrvItem {
         loc: Option<SourceLoc>,
         locs: Option<FixDirectiveLocs>,
     },
-    #[schemars(title = "InvalidFlagDirective")]
+    /// # InvalidFlagDirective
     FlagDirective {
         stations: Vec<String>,
         flag: Option<String>,
@@ -2554,7 +2798,7 @@ pub enum InvalidSrvItem {
         loc: Option<SourceLoc>,
         locs: Option<FlagDirectiveLocs>,
     },
-    #[schemars(title = "InvalidSymbolDirective")]
+    /// # InvalidSymbolDirective
     SymbolDirective {
         opacity: Option<MaybeValidSymbolOpacity>,
         shape: Option<MaybeValidSymbolShape>,
@@ -2565,7 +2809,7 @@ pub enum InvalidSrvItem {
         loc: Option<SourceLoc>,
         locs: Option<SymbolDirectiveLocs>,
     },
-    #[schemars(title = "InvalidDateDirective")]
+    /// # InvalidDateDirective
     DateDirective {
         year: Option<MaybeValidU32>,
         month: Option<MaybeValidU8>,
@@ -2574,7 +2818,7 @@ pub enum InvalidSrvItem {
         loc: Option<SourceLoc>,
         locs: Option<DateDirectiveLocs>,
     },
-    #[schemars(title = "InvalidShot")]
+    /// # InvalidShot
     Shot {
         from: Option<String>,
         to: Option<String>,
@@ -2594,7 +2838,7 @@ pub enum InvalidSrvItem {
         loc: Option<SourceLoc>,
         locs: Option<ShotLocs>,
     },
-    #[schemars(title = "UnknownItem")]
+    /// # UnknownItem
     Unknown {
         text: String,
         loc: Option<SourceLoc>,
@@ -2637,7 +2881,7 @@ impl From<SrvItem> for MaybeValidSrvItem {
 #[schemars(deny_unknown_fields)]
 pub struct WallsSrvFile {
     pub items: Vec<SrvItem>,
-    pub issues: Option<Vec<ParseIssue>>,
+    pub issues: Option<Vec<ParseIssue<SrvErrorCode>>>,
 }
 
 #[skip_serializing_none]
@@ -2656,7 +2900,7 @@ pub enum MaybeValidWallsSrvFile {
     Invalid {
         #[serde(rename = "INVALID")]
         invalid: InvalidWallsSrvFile,
-        issues: Vec<ParseIssue>,
+        issues: Vec<ParseIssue<SrvErrorCode>>,
     },
 }
 
@@ -2686,6 +2930,8 @@ pub const EMINUTESOUTOFRANGE: &str = "EMINUTESOUTOFRANGE";
 pub const ESECONDSOUTOFRANGE: &str = "ESECONDSOUTOFRANGE";
 pub const EINVALIDAZIMUTH: &str = "EINVALIDAZIMUTH";
 pub const EAZIMUTHOUTOFRANGE: &str = "EAZIMUTHOUTOFRANGE";
+pub const EMISSINGENDINGDIR: &str = "EMISSINGENDINGDIR";
+pub const EINVALIDENDINGDIR: &str = "EINVALIDENDINGDIR";
 pub const EINVALIDAZIMUTHUNIT: &str = "EINVALIDAZIMUTHUNIT";
 pub const EINVALIDINCLINATION: &str = "EINVALIDINCLINATION";
 pub const EINCLINATIONOUTOFRANGE: &str = "EINCLINATIONOUTOFRANGE";

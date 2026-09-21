@@ -16,7 +16,7 @@ INVALID:
           style: FromStationPerpendicular
       type: UnitsDirective
 issues:
-  - code: EMISSINGLRUDORDER
+  - code: MissingLrudOrder
     loc: ""
     message: Missing LRUD order
     severity: Error

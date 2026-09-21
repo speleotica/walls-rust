@@ -20,11 +20,11 @@ INVALID:
               - 0
         type: UnitsDirective
 issues:
-  - code: EINVALIDAZIMUTHUNIT
+  - code: InvalidAzimuthUnit
     loc: q
     message: Invalid azimuth unit
     severity: Error
-  - code: EUNEXPECTED
+  - code: Unexpected
     loc: "-"
     message: Unexpected text
     severity: Error

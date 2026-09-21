@@ -23,7 +23,7 @@ INVALID:
           option: BacksightAzimuthCorrection
       type: UnitsDirective
 issues:
-  - code: EUNEXPECTED
+  - code: Unexpected
     loc: g
     message: Unexpected text
     severity: Error

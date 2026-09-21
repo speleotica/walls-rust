@@ -27,7 +27,7 @@ INVALID:
                 value: 0.3
         type: UnitsDirective
 issues:
-  - code: EINVALIDDONOTAVERAGE
+  - code: InvalidDoNotAverage
     loc: qb
     message: Invalid do not average flag
     severity: Error

@@ -29,10 +29,46 @@
     "Angle": {
       "type": "object",
       "properties": {
+        "degrees": {
+          "description": "The original degrees portion of a degrees-minutes-seconds angle,\nif given.  This will be present for literals like `3:05`, `3:05:40`,\nbut omitted for literals like `:05`, `::40`.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AngleLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "minutes": {
+          "description": "The original minutes portion of a degrees-minutes-seconds angle,\nif given.  This will be present for literals like `:05, `3:05`, `3:05:40`,\nbut omitted for literals like `3::40`, `::40`.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "seconds": {
+          "description": "The original seconds portion of a degrees-minutes-seconds angle,\nif given.  This will be present for literals like `::40`, `:05:40`, `3:05:40`,\nbut omitted for literals like `3:05`, `:05`.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
         "unit": {
+          "description": "The unit of the `value`",
           "$ref": "#/$defs/AngleUnit"
         },
         "value": {
+          "description": "The magnitude of the angle, in units of `unit`.  For a\ndegrees-minutes-seconds angle, this will be the converted decimal degrees\nmagnitude.",
           "type": "number",
           "format": "double"
         }
@@ -43,18 +79,69 @@
         "unit"
       ]
     },
+    "AngleLocs": {
+      "type": "object",
+      "properties": {
+        "degrees": {
+          "description": "The location of the degrees portion of a degrees-minutes-seconds angle,\nif given.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "minutes": {
+          "description": "The location of the minutes portion of a degrees-minutes-seconds angle,\nif given.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "seconds": {
+          "description": "The location of the seconds portion of a degrees-minutes-seconds angle,\nif given.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "AngleUnit": {
-      "type": "string",
-      "enum": [
-        "Degrees",
-        "Mils",
-        "Grads"
+      "oneOf": [
+        {
+          "description": "1 revolution = 360 degrees",
+          "type": "string",
+          "const": "Degrees"
+        },
+        {
+          "description": "1 revolution = 6400 mils",
+          "type": "string",
+          "const": "Mils"
+        },
+        {
+          "description": "1 revolution = 400 grads",
+          "type": "string",
+          "const": "Grads"
+        }
       ]
     },
     "BacksightOptionsLocs": {
       "type": "object",
       "properties": {
         "do_not_average": {
+          "description": "The location of the do not average flag (`X`)",
           "anyOf": [
             {
               "$ref": "#/$defs/SourceLoc"
@@ -65,6 +152,18 @@
           ]
         },
         "is_corrected": {
+          "description": "The location of the corrected flag (`N` or `C`)",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceLoc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "option": {
+          "description": "The location of the `TYPEAB` or `TYPEVB` text",
           "anyOf": [
             {
               "$ref": "#/$defs/SourceLoc"
@@ -75,6 +174,7 @@
           ]
         },
         "tolerance": {
+          "description": "The location of the tolerance",
           "anyOf": [
             {
               "$ref": "#/$defs/SourceLoc"
@@ -609,6 +709,7 @@
     "FixLocation": {
       "oneOf": [
         {
+          "title": "LatLongFixLocation",
           "type": "object",
           "properties": {
             "LatLong": {
@@ -648,6 +749,7 @@
           ]
         },
         {
+          "title": "GridFixLocation",
           "type": "object",
           "properties": {
             "Grid": {
@@ -805,6 +907,37 @@
     "Inclination": {
       "type": "object",
       "properties": {
+        "degrees": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "locs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AngleLocs"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "minutes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "seconds": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
         "unit": {
           "$ref": "#/$defs/InclinationUnit"
         },
@@ -820,12 +953,27 @@
       ]
     },
     "InclinationUnit": {
-      "type": "string",
-      "enum": [
-        "Degrees",
-        "Mils",
-        "Grads",
-        "Percent"
+      "oneOf": [
+        {
+          "description": "1 revolution = 360 degrees",
+          "type": "string",
+          "const": "Degrees"
+        },
+        {
+          "description": "1 revolution = 6400 mils",
+          "type": "string",
+          "const": "Mils"
+        },
+        {
+          "description": "1 revolution = 400 grads",
+          "type": "string",
+          "const": "Grads"
+        },
+        {
+          "description": "Percent grade (rise / run * 100): 100% = 45 degrees",
+          "type": "string",
+          "const": "Percent"
+        }
       ]
     },
     "InvalidColor": {
@@ -887,6 +1035,7 @@
     "InvalidFixLocation": {
       "oneOf": [
         {
+          "title": "InvalidLatLongFixLocation",
           "type": "object",
           "properties": {
             "LatLong": {
@@ -942,6 +1091,7 @@
           ]
         },
         {
+          "title": "InvalidGridFixLocation",
           "type": "object",
           "properties": {
             "Grid": {
@@ -1001,6 +1151,7 @@
     "InvalidShotMeasurements": {
       "oneOf": [
         {
+          "title": "InvalidCompassAndTapeShotMeasurements",
           "type": "object",
           "properties": {
             "backsight_azimuth": {
@@ -1088,6 +1239,7 @@
           ]
         },
         {
+          "title": "InvalidRectilinearShotMeasurements",
           "type": "object",
           "properties": {
             "easting": {
@@ -1671,7 +1823,7 @@
     "InvalidUnitsOption": {
       "oneOf": [
         {
-          "title": "InvalidCompassAndTapeOrderOption",
+          "title": "InvalidOrderOption",
           "type": "object",
           "properties": {
             "loc": {
@@ -1696,60 +1848,21 @@
             },
             "option": {
               "type": "string",
-              "const": "CompassAndTapeOrder"
+              "const": "Order"
             },
             "order": {
-              "type": "array",
+              "type": [
+                "array",
+                "null"
+              ],
               "items": {
-                "$ref": "#/$defs/MaybeValidCompassAndTapeItem"
+                "$ref": "#/$defs/MaybeValidOrderItem"
               }
             }
           },
           "additionalProperties": false,
           "required": [
-            "option",
-            "order"
-          ]
-        },
-        {
-          "title": "InvalidRectilinearOrderOption",
-          "type": "object",
-          "properties": {
-            "loc": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/SourceLoc"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "locs": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/OrderOptionLocs"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "option": {
-              "type": "string",
-              "const": "RectilinearOrder"
-            },
-            "order": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/MaybeValidRectilinearItem"
-              }
-            }
-          },
-          "additionalProperties": false,
-          "required": [
-            "option",
-            "order"
+            "option"
           ]
         },
         {
@@ -2113,7 +2226,7 @@
           ]
         },
         {
-          "title": "InvalidDistanceCorrectionOption",
+          "title": "InvalidPrimaryDistanceCorrectionOption",
           "type": "object",
           "properties": {
             "correction": {
@@ -2144,7 +2257,47 @@
             },
             "option": {
               "type": "string",
-              "const": "DistanceCorrection"
+              "const": "PrimaryDistanceCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option"
+          ]
+        },
+        {
+          "title": "InvalidSecondaryDistanceCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "SecondaryDistanceCorrection"
             }
           },
           "additionalProperties": false,
@@ -2357,10 +2510,34 @@
           "type": "object",
           "properties": {
             "do_not_average": {
-              "type": "boolean"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidBool"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "is_corrected": {
-              "type": "boolean"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidBool"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "locs": {
               "anyOf": [
@@ -2379,7 +2556,7 @@
             "tolerance": {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/Angle"
+                  "$ref": "#/$defs/MaybeValidAngle"
                 },
                 {
                   "type": "null"
@@ -2389,9 +2566,7 @@
           },
           "additionalProperties": false,
           "required": [
-            "option",
-            "is_corrected",
-            "do_not_average"
+            "option"
           ]
         },
         {
@@ -2399,10 +2574,34 @@
           "type": "object",
           "properties": {
             "do_not_average": {
-              "type": "boolean"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidBool"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "is_corrected": {
-              "type": "boolean"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidBool"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "locs": {
               "anyOf": [
@@ -2421,7 +2620,7 @@
             "tolerance": {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/Angle"
+                  "$ref": "#/$defs/MaybeValidAngle"
                 },
                 {
                   "type": "null"
@@ -2431,9 +2630,7 @@
           },
           "additionalProperties": false,
           "required": [
-            "option",
-            "is_corrected",
-            "do_not_average"
+            "option"
           ]
         },
         {
@@ -2505,15 +2702,23 @@
               "const": "Lrud"
             },
             "order": {
-              "type": [
-                "string",
-                "null"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidLrudOrder"
+                },
+                {
+                  "type": "null"
+                }
               ]
             },
             "style": {
-              "type": [
-                "string",
-                "null"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MaybeValidLrudStyle"
+                },
+                {
+                  "type": "null"
+                }
               ]
             }
           },
@@ -2921,12 +3126,27 @@
       ]
     },
     "LrudStyle": {
-      "type": "string",
-      "enum": [
-        "FromStationPerpendicular",
-        "ToStationPerpendicular",
-        "FromStationBisector",
-        "ToStationBisector"
+      "oneOf": [
+        {
+          "description": "LRUDs of a shot are associated with the from station and perpendicular\nto the shot (unless a facing azimuth or left/right azimuths are specified)",
+          "type": "string",
+          "const": "FromStationPerpendicular"
+        },
+        {
+          "description": "LRUDs of a shot are associated with the to station and perpendicular\nto the shot (unless a facing azimuth or left/right azimuths are specified)",
+          "type": "string",
+          "const": "ToStationPerpendicular"
+        },
+        {
+          "description": "LRUDs of a shot are associated with the from station and bisect\nthe angle between the shot and the preceeding shot\n(unless a facing azimuth or left/right azimuths are specified)",
+          "type": "string",
+          "const": "FromStationBisector"
+        },
+        {
+          "description": "LRUDs of a shot are associated with the to station and bisect\nthe angle between the shot and the succeeding shot\n(unless a facing azimuth or left/right azimuths are specified)",
+          "type": "string",
+          "const": "ToStationBisector"
+        }
       ]
     },
     "MacroOptionLocs": {
@@ -2971,6 +3191,16 @@
         }
       ]
     },
+    "MaybeValidBool": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/$defs/InvalidValue"
+        }
+      ]
+    },
     "MaybeValidColor": {
       "anyOf": [
         {
@@ -2998,16 +3228,6 @@
           "required": [
             "INVALID"
           ]
-        }
-      ]
-    },
-    "MaybeValidCompassAndTapeItem": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/CompassAndTapeItem"
-        },
-        {
-          "$ref": "#/$defs/InvalidValue"
         }
       ]
     },
@@ -3061,10 +3281,70 @@
         }
       ]
     },
-    "MaybeValidRectilinearItem": {
+    "MaybeValidLrudItem": {
       "anyOf": [
         {
-          "$ref": "#/$defs/RectilinearItem"
+          "$ref": "#/$defs/LrudItem"
+        },
+        {
+          "$ref": "#/$defs/InvalidValue"
+        }
+      ]
+    },
+    "MaybeValidLrudOrder": {
+      "anyOf": [
+        {
+          "title": "LrudOrder",
+          "description": "The order in which LRUD measurements are specified",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LrudItem"
+          },
+          "maxItems": 4,
+          "minItems": 4
+        },
+        {
+          "type": "object",
+          "properties": {
+            "INVALID": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/MaybeValidLrudItem"
+              }
+            },
+            "issues": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint",
+                "minimum": 0
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "INVALID"
+          ]
+        }
+      ]
+    },
+    "MaybeValidLrudStyle": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LrudStyle"
+        },
+        {
+          "$ref": "#/$defs/InvalidValue"
+        }
+      ]
+    },
+    "MaybeValidOrderItem": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OrderItem"
         },
         {
           "$ref": "#/$defs/InvalidValue"
@@ -3404,6 +3684,17 @@
       "additionalProperties": false,
       "required": [
         "directive"
+      ]
+    },
+    "OrderItem": {
+      "type": "string",
+      "enum": [
+        "Distance",
+        "Azimuth",
+        "Inclination",
+        "Easting",
+        "Northing",
+        "Elevation"
       ]
     },
     "OrderOptionLocs": {
@@ -3988,6 +4279,7 @@
     "ShotMeasurements": {
       "oneOf": [
         {
+          "title": "CompassAndTapeShotMeasurements",
           "type": "object",
           "properties": {
             "backsight_azimuth": {
@@ -4075,6 +4367,7 @@
           ]
         },
         {
+          "title": "RectilinearShotMeasurements",
           "type": "object",
           "properties": {
             "easting": {
@@ -4117,13 +4410,6 @@
         }
       ]
     },
-    "SightDirection": {
-      "type": "string",
-      "enum": [
-        "Frontsight",
-        "Backsight"
-      ]
-    },
     "SourceLoc": {
       "type": "object",
       "properties": {
@@ -4143,12 +4429,12 @@
     "SourcePos": {
       "type": "object",
       "properties": {
-        "column": {
+        "col": {
           "type": "integer",
           "format": "uint",
           "minimum": 0
         },
-        "index": {
+        "idx": {
           "type": "integer",
           "format": "uint",
           "minimum": 0
@@ -4162,8 +4448,8 @@
       "additionalProperties": false,
       "required": [
         "line",
-        "column",
-        "index"
+        "col",
+        "idx"
       ]
     },
     "SrvItem": {
@@ -4201,11 +4487,22 @@
       ]
     },
     "StationNameCaseConversion": {
-      "type": "string",
-      "enum": [
-        "Upper",
-        "Lower",
-        "Mixed"
+      "oneOf": [
+        {
+          "description": "Convert station names to uppercase",
+          "type": "string",
+          "const": "Upper"
+        },
+        {
+          "description": "Convert station names to lowercase",
+          "type": "string",
+          "const": "Lower"
+        },
+        {
+          "description": "Leave station name case as is",
+          "type": "string",
+          "const": "Mixed"
+        }
       ]
     },
     "StationNameCaseOptionLocs": {
@@ -4405,12 +4702,27 @@
       ]
     },
     "TapingMethod": {
-      "type": "string",
-      "enum": [
-        "InstrumentToTarget",
-        "StationToStation",
-        "InstrumentToStation",
-        "StationToTarget"
+      "oneOf": [
+        {
+          "description": "Indicates the distance of a shot is measured from the instrument to\nthe target (either of which may be above or below the FROm/TO station,\nif `instrument_height`/`target_height` are given)",
+          "type": "string",
+          "const": "InstrumentToTarget"
+        },
+        {
+          "description": "Indicates the distance of a shot is measured from station to station,\neven if the inclination instrument and/or target positions are above\nor below the FROm/TO station, if `instrument_height`/`target_height`\nare given)",
+          "type": "string",
+          "const": "StationToStation"
+        },
+        {
+          "description": "Indicates the distance of a shot is measured from the inclination\ninstrument to the TO station, even if the inclination target position\nis above or below the TO station, if `target_height` is given)",
+          "type": "string",
+          "const": "InstrumentToStation"
+        },
+        {
+          "description": "Indicates the distance of a shot is measured from the FROM\nstation to the inclination target, even if the inclination instrument\nposition is above or below the FROM station, if `instrument_height` is given)",
+          "type": "string",
+          "const": "StationToTarget"
+        }
       ]
     },
     "TapingMethodOptionLocs": {
@@ -4530,6 +4842,7 @@
       "oneOf": [
         {
           "title": "CompassAndTapeOption",
+          "description": "A `CT` option, which indicates shot vectors are defined with\ndistance, azimuth, and inclination measurements",
           "type": "object",
           "properties": {
             "loc": {
@@ -4554,6 +4867,7 @@
         },
         {
           "title": "RectilinearOption",
+          "description": "A `RECT` option, which indicates shot vectors are defined with\neasting, northing, and elevation measurements",
           "type": "object",
           "properties": {
             "loc": {
@@ -4578,6 +4892,7 @@
         },
         {
           "title": "CompassAndTapeOrderOption",
+          "description": "An `ORDER` option for `CompassAndTape` measurements",
           "type": "object",
           "properties": {
             "loc": {
@@ -4605,6 +4920,7 @@
               "const": "CompassAndTapeOrder"
             },
             "order": {
+              "description": "The order of the distance, azimuth, and (optionally) inclination\nmeasurements",
               "type": "array",
               "items": {
                 "$ref": "#/$defs/CompassAndTapeItem"
@@ -4619,6 +4935,7 @@
         },
         {
           "title": "RectilinearOrderOption",
+          "description": "An `ORDER` option for `Rectilinear` measurements",
           "type": "object",
           "properties": {
             "loc": {
@@ -4646,6 +4963,7 @@
               "const": "RectilinearOrder"
             },
             "order": {
+              "description": "The order of the easting, northing, and (optionally) elevation\nmeasurements",
               "type": "array",
               "items": {
                 "$ref": "#/$defs/RectilinearItem"
@@ -4660,6 +4978,7 @@
         },
         {
           "title": "FrontsightAzimuthUnitOption",
+          "description": "An `A=` option, the default unit for frontsight azimuth measurements",
           "type": "object",
           "properties": {
             "loc": {
@@ -4687,6 +5006,7 @@
               "const": "FrontsightAzimuthUnit"
             },
             "unit": {
+              "description": "the default unit for frontsight azimuth measurements",
               "$ref": "#/$defs/AngleUnit"
             }
           },
@@ -4698,6 +5018,7 @@
         },
         {
           "title": "BacksightAzimuthUnitOption",
+          "description": "An `AB=` option, the default unit for backsight azimuth measurements",
           "type": "object",
           "properties": {
             "loc": {
@@ -4725,6 +5046,7 @@
               "const": "BacksightAzimuthUnit"
             },
             "unit": {
+              "description": "the default unit for backsight azimuth measurements",
               "$ref": "#/$defs/AngleUnit"
             }
           },
@@ -4736,6 +5058,7 @@
         },
         {
           "title": "PrimaryDistanceUnitOption",
+          "description": "An `D=` option, the default unit for all distances except LRUDs,\ninstrument and target heights",
           "type": "object",
           "properties": {
             "loc": {
@@ -4763,6 +5086,7 @@
               "const": "PrimaryDistanceUnit"
             },
             "unit": {
+              "description": "the default unit for all distances except LRUDs,\ninstrument and target heights",
               "$ref": "#/$defs/LengthUnit"
             }
           },
@@ -4774,6 +5098,7 @@
         },
         {
           "title": "SecondaryDistanceUnitOption",
+          "description": "An `S=` option, the default unit for LRUDs, instrument and target heights",
           "type": "object",
           "properties": {
             "loc": {
@@ -4801,6 +5126,7 @@
               "const": "SecondaryDistanceUnit"
             },
             "unit": {
+              "description": "the default unit for LRUDs, instrument and target heights",
               "$ref": "#/$defs/LengthUnit"
             }
           },
@@ -4812,6 +5138,7 @@
         },
         {
           "title": "DistanceUnitOption",
+          "description": "A `Feet` or `Meters` option, the default unit for all distances",
           "type": "object",
           "properties": {
             "loc": {
@@ -4840,6 +5167,7 @@
         },
         {
           "title": "FrontsightInclinationUnitOption",
+          "description": "A `V=` option, the default unit for frontsight inclination measurements",
           "type": "object",
           "properties": {
             "loc": {
@@ -4867,6 +5195,7 @@
               "const": "FrontsightInclinationUnit"
             },
             "unit": {
+              "description": "the default unit for frontsight inclination measurements",
               "$ref": "#/$defs/InclinationUnit"
             }
           },
@@ -4878,6 +5207,7 @@
         },
         {
           "title": "BacksightInclinationUnitOption",
+          "description": "A `VB=` option, the default unit for backsight inclination measurements",
           "type": "object",
           "properties": {
             "loc": {
@@ -4905,6 +5235,7 @@
               "const": "BacksightInclinationUnit"
             },
             "unit": {
+              "description": "the default unit for backsight inclination measurements",
               "$ref": "#/$defs/InclinationUnit"
             }
           },
@@ -4916,9 +5247,11 @@
         },
         {
           "title": "MagneticDeclinationOption",
+          "description": "A `DECL=` option, the magnetic declination angle\n(true north minus magnetic north)",
           "type": "object",
           "properties": {
             "declination": {
+              "description": "the magnetic declination angle\n(true north minus magnetic north)",
               "$ref": "#/$defs/Angle"
             },
             "loc": {
@@ -4954,6 +5287,7 @@
         },
         {
           "title": "GridNorthCorrectionOption",
+          "description": "A `GRID=` option,",
           "type": "object",
           "properties": {
             "correction": {
@@ -5029,7 +5363,7 @@
           ]
         },
         {
-          "title": "DistanceCorrectionOption",
+          "title": "PrimaryDistanceCorrectionOption",
           "type": "object",
           "properties": {
             "correction": {
@@ -5057,7 +5391,7 @@
             },
             "option": {
               "type": "string",
-              "const": "DistanceCorrection"
+              "const": "PrimaryDistanceCorrection"
             }
           },
           "additionalProperties": false,
@@ -5067,14 +5401,11 @@
           ]
         },
         {
-          "title": "AzimuthCorrectionOption",
+          "title": "SecondaryDistanceCorrectionOption",
           "type": "object",
           "properties": {
             "correction": {
-              "$ref": "#/$defs/Angle"
-            },
-            "direction": {
-              "$ref": "#/$defs/SightDirection"
+              "$ref": "#/$defs/Length"
             },
             "loc": {
               "anyOf": [
@@ -5098,25 +5429,21 @@
             },
             "option": {
               "type": "string",
-              "const": "AzimuthCorrection"
+              "const": "SecondaryDistanceCorrection"
             }
           },
           "additionalProperties": false,
           "required": [
             "option",
-            "direction",
             "correction"
           ]
         },
         {
-          "title": "InclinationCorrectionOption",
+          "title": "FrontsightAzimuthCorrectionOption",
           "type": "object",
           "properties": {
             "correction": {
               "$ref": "#/$defs/Angle"
-            },
-            "direction": {
-              "$ref": "#/$defs/SightDirection"
             },
             "loc": {
               "anyOf": [
@@ -5140,13 +5467,126 @@
             },
             "option": {
               "type": "string",
-              "const": "InclinationCorrection"
+              "const": "FrontsightAzimuthCorrection"
             }
           },
           "additionalProperties": false,
           "required": [
             "option",
-            "direction",
+            "correction"
+          ]
+        },
+        {
+          "title": "BacksightAzimuthCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "$ref": "#/$defs/Angle"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "BacksightAzimuthCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "correction"
+          ]
+        },
+        {
+          "title": "FrontsightInclinationCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "$ref": "#/$defs/Inclination"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "FrontsightInclinationCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
+            "correction"
+          ]
+        },
+        {
+          "title": "FrontsightInclinationCorrectionOption",
+          "type": "object",
+          "properties": {
+            "correction": {
+              "$ref": "#/$defs/Inclination"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "locs": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CorrectionOptionLocs"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "option": {
+              "type": "string",
+              "const": "BacksightInclinationCorrection"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "option",
             "correction"
           ]
         },
@@ -5193,10 +5633,22 @@
           "type": "object",
           "properties": {
             "do_not_average": {
+              "description": "If true, only the frontsight measurement should be used for calculating\nstation positions.  Otherwise, the average of the frontsight and\nbacksight measurements should be used",
               "type": "boolean"
             },
             "is_corrected": {
+              "description": "If true, backsight measurements are \"corrected\" (inverted to match\nthe facing direction of the frontsight measurements)",
               "type": "boolean"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "locs": {
               "anyOf": [
@@ -5213,6 +5665,7 @@
               "const": "BacksightAzimuthType"
             },
             "tolerance": {
+              "description": "The maximum difference between frontsight and backsight measurements\nto tolerate without logging and error",
               "$ref": "#/$defs/Angle"
             }
           },
@@ -5229,10 +5682,22 @@
           "type": "object",
           "properties": {
             "do_not_average": {
+              "description": "If true, only the frontsight measurement should be used for calculating\nstation positions.  Otherwise, the average of the frontsight and\nbacksight measurements should be used",
               "type": "boolean"
             },
             "is_corrected": {
+              "description": "If true, backsight measurements are \"corrected\" (inverted to match\nthe facing direction of the frontsight measurements)",
               "type": "boolean"
+            },
+            "loc": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceLoc"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "locs": {
               "anyOf": [
@@ -5249,6 +5714,7 @@
               "const": "BacksightInclinationType"
             },
             "tolerance": {
+              "description": "The maximum difference between frontsight and backsight measurements\nto tolerate without logging and error",
               "$ref": "#/$defs/Angle"
             }
           },

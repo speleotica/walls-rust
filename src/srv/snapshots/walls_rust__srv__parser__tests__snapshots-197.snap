@@ -18,7 +18,7 @@ INVALID:
           option: HeightAdjustment
       type: UnitsDirective
 issues:
-  - code: EUNEXPECTED
+  - code: Unexpected
     loc: "-"
     message: Unexpected text
     severity: Error

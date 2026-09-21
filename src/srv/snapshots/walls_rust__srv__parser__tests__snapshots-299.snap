@@ -23,11 +23,11 @@ INVALID:
                   - 1
         type: UnitsDirective
 issues:
-  - code: EUNEXPECTED
+  - code: Unexpected
     loc: "-2"
     message: Unexpected text
     severity: Error
-  - code: EINVALIDTOLERANCE
+  - code: InvalidTolerance
     loc: "-2"
     message: Invalid tolerance
     severity: Error

@@ -24,7 +24,7 @@ INVALID:
                 - Easting
         type: UnitsDirective
 issues:
-  - code: EINVALIDORDERITEM
+  - code: InvalidOrderItem
     loc: q
     message: Invalid measurement item
     severity: Error

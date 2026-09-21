@@ -29,7 +29,7 @@ INVALID:
               - 0
         type: UnitsDirective
 issues:
-  - code: EINVALIDOPTION
+  - code: InvalidOption
     loc: "#blah"
     message: "Invalid #UNITS option"
     severity: Error

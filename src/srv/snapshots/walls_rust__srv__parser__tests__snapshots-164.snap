@@ -20,7 +20,7 @@ INVALID:
               - 0
         type: UnitsDirective
 issues:
-  - code: EINVALIDINCLINATIONUNIT
+  - code: InvalidInclinationUnit
     loc: q
     message: Invalid inclination unit
     severity: Error

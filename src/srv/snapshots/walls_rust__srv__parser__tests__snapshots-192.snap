@@ -20,7 +20,7 @@ INVALID:
               - 0
         type: UnitsDirective
 issues:
-  - code: EINVALIDLENGTHUNIT
+  - code: InvalidLengthUnit
     loc: q
     message: Invalid length unit
     severity: Error
